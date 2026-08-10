@@ -109,9 +109,13 @@
         <div class="admin-card">
           <div class="field"><label>Title <span class="req">*</span></label><input type="text" id="aTitle" placeholder="e.g. Earth Day event this Friday" /></div>
           <div class="field"><label>Message <span class="req">*</span></label><input type="text" id="aMessage" placeholder="Full announcement text" /></div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
             <input type="checkbox" id="aPinned" style="width:auto;margin:0" />
             <label for="aPinned" style="font-size:.88rem;color:var(--green);font-weight:600;margin:0">Pin to top</label>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <input type="checkbox" id="aSendSMS" style="width:auto;margin:0" />
+            <label for="aSendSMS" style="font-size:.88rem;color:var(--green);font-weight:600;margin:0">Send as SMS to all members</label>
           </div>
           <button class="btn btn-primary" onclick="postAnnouncement()">Post announcement</button>
         </div>

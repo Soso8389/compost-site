@@ -4,8 +4,9 @@
    Phone number gating + hashed password stored in Firestore.
    ============================================================ */
 
-const CFG        = window.CONFIG || {};
-const ADMIN_PHONE = (CFG.adminPhone || '8182793907').replace(/\D/g, '');
+const CFG         = window.CONFIG || {};
+const ADMIN_PHONE  = (CFG.adminPhone || '8182793907').replace(/\D/g, '');
+const SMS_URL      = 'https://compost-site.vercel.app/api/send-sms';
 
 let db = null;
 const state = { users: {}, events: [], codes: {}, announcements: [], authed: false };
@@ -141,14 +142,43 @@ async function postAnnouncement() {
   const title   = document.getElementById('aTitle').value.trim();
   const message = document.getElementById('aMessage').value.trim();
   const pinned  = document.getElementById('aPinned').checked;
+  const sendSMS = document.getElementById('aSendSMS').checked;
   if (!title || !message) { toast('Title and message are required.', 'bad'); return; }
   try {
     await db.collection('announcements').add({ title, message, pinned, ts: Date.now() });
-    document.getElementById('aTitle').value   = '';
-    document.getElementById('aMessage').value = '';
-    document.getElementById('aPinned').checked = false;
-    toast('Announcement posted.', 'ok');
+
+    // send SMS if checked
+    if (sendSMS) {
+      const phones = Object.values(state.users)
+        .map(u => u.phone)
+        .filter(Boolean);
+      if (phones.length) {
+        try {
+          const r = await fetch(SMS_URL, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ phones, message: title + ': ' + message })
+          });
+          const data = await r.json();
+          toast('Announcement posted. ' + data.sent + ' text' + (data.sent === 1 ? '' : 's') + ' sent.', 'ok');
+        } catch (e) {
+          toast('Announcement posted but SMS failed.', 'bad');
+          console.error(e);
+        }
+      } else {
+        toast('Announcement posted. No member phone numbers found.', 'ok');
+      }
+    } else {
+      toast('Announcement posted.', 'ok');
+    }
+
+    document.getElementById('aTitle').value    = '';
+    document.getElementById('aMessage').value  = '';
+    document.getElementById('aPinned').checked  = false;
+    document.getElementById('aSendSMS').checked = false;
   } catch (e) { toast('Failed to post.', 'bad'); console.error(e); }
+}
+
 }
 
 async function deleteAnnouncement(id) {
@@ -325,8 +355,21 @@ function renderMembers() {
       </div>
       <div class="ar-actions">
         <span class="badge-sm ${(u.contributions||[]).length > 0 ? 'green' : 'tan'}">${(u.contributions||[]).length} contributions</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteMember('${u.phone}')">Remove</button>
       </div>
     </div>`).join('');
+}
+
+/* ── delete member ─────────────────────────────────────── */
+async function deleteMember(phone) {
+  if (!confirm('Delete this member? This cannot be undone.')) return;
+  try {
+    await db.collection('users').doc(phone).delete();
+    delete state.users[phone];
+    toast('Member removed.', 'ok');
+    renderMembers();
+    renderLeaderboard();
+  } catch (e) { toast('Failed to delete.', 'bad'); console.error(e); }
 }
 
 /* ── toast ──────────────────────────────────────────────── */
