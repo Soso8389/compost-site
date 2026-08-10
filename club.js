@@ -53,7 +53,7 @@ async function initFirebase() {
       state.announcements = [];
       snap.forEach(doc => state.announcements.push({ id: doc.id, ...doc.data() }));
       renderAnnouncements();
-    });
+    }, err => console.warn('Announcements error:', err));
 
   } catch (e) {
     console.error('Firebase failed:', e);
@@ -132,11 +132,21 @@ function renderJoinPanel() {
   if (nameInput)  nameInput.value  = u.name  || '';
   if (phoneInput) phoneInput.value = u.phone || '';
 
-  // if already marked as club member, hide the form
+  // hide form if already a club member
   if (u.clubMember) {
     document.getElementById('joinClubForm').style.display  = 'none';
     document.getElementById('alreadyMember').style.display = 'block';
+  } else {
+    document.getElementById('joinClubForm').style.display  = 'block';
+    document.getElementById('alreadyMember').style.display = 'none';
   }
+}
+
+async function markClubMember() {
+  const u = DB.currentUser();
+  if (!u) return;
+  u.clubMember = true;
+  await DB.upsert(u);
 }
 
 /* ── volunteer shifts ───────────────────────────────────── */
