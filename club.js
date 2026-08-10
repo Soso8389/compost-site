@@ -124,22 +124,17 @@ function renderGuestBanner() {
 /* ── join panel ─────────────────────────────────────────── */
 function renderJoinPanel() {
   const u = DB.currentUser();
-  if (!u) return;
 
-  // pre-fill name and phone
-  const nameInput  = document.getElementById('joinName');
-  const phoneInput = document.getElementById('joinPhone');
-  if (nameInput)  nameInput.value  = u.name  || '';
-  if (phoneInput) phoneInput.value = u.phone || '';
-
-  // hide form if already a club member
-  if (u.clubMember) {
-    document.getElementById('joinClubForm').style.display  = 'none';
-    document.getElementById('alreadyMember').style.display = 'block';
-  } else {
+  // not logged in — show the form as normal
+  if (!u) {
     document.getElementById('joinClubForm').style.display  = 'block';
     document.getElementById('alreadyMember').style.display = 'none';
+    return;
   }
+
+  // logged in — always hide the form and show the member message
+  document.getElementById('joinClubForm').style.display  = 'none';
+  document.getElementById('alreadyMember').style.display = 'block';
 }
 
 async function markClubMember() {
