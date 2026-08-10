@@ -95,7 +95,7 @@ async function findUser(phone) {
 function renderAll() {
   renderNav();
   renderGuestBanner();
-  renderJoinPanel();
+  renderMemberGreeting();
   renderMyShifts();
   renderAttendanceHistory();
   renderCalendar();
@@ -122,26 +122,17 @@ function renderGuestBanner() {
 }
 
 /* ── join panel ─────────────────────────────────────────── */
-function renderJoinPanel() {
+function renderMemberGreeting() {
+  const greeting = document.getElementById('memberGreeting');
+  const nameEl   = document.getElementById('greetingName');
   const u = DB.currentUser();
-
-  // not logged in — show the form as normal
-  if (!u) {
-    document.getElementById('joinClubForm').style.display  = 'block';
-    document.getElementById('alreadyMember').style.display = 'none';
-    return;
+  if (!greeting) return;
+  if (u) {
+    greeting.style.display = 'block';
+    if (nameEl) nameEl.textContent = 'Hello, ' + u.name.split(' ')[0] + '.';
+  } else {
+    greeting.style.display = 'none';
   }
-
-  // logged in — always hide the form and show the member message
-  document.getElementById('joinClubForm').style.display  = 'none';
-  document.getElementById('alreadyMember').style.display = 'block';
-}
-
-async function markClubMember() {
-  const u = DB.currentUser();
-  if (!u) return;
-  u.clubMember = true;
-  await DB.upsert(u);
 }
 
 /* ── volunteer shifts ───────────────────────────────────── */
@@ -352,7 +343,7 @@ function toast(msg, kind) {
 }
 
 /* ── scroll helper ──────────────────────────────────────── */
-function scrollTo(id) {
+function scrollSection(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: 'smooth' });
 }

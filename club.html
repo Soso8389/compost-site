@@ -69,11 +69,10 @@
     <h1 style="font-size:clamp(2.2rem,5vw,3.6rem);font-family:var(--display);font-weight:500;color:var(--green-deep);line-height:1.08;margin:12px 0 16px">The CVHS compost club.</h1>
     <p class="lead">Sign up for shifts, log attendance, and stay up to date with everything the club has going on.</p>
     <div class="quick-nav">
-      <button class="quick-btn" onclick="scrollTo('sec-announcements')">Announcements</button>
-      <button class="quick-btn" onclick="scrollTo('sec-events')">Events</button>
-      <button class="quick-btn" onclick="scrollTo('sec-attendance')">Attendance</button>
-      <button class="quick-btn" onclick="scrollTo('sec-volunteer')">Volunteer</button>
-      <button class="quick-btn" onclick="scrollTo('sec-join')">Join the club</button>
+      <button class="quick-btn" onclick="scrollSection('sec-announcements')">Announcements</button>
+      <button class="quick-btn" onclick="scrollSection('sec-events')">Events</button>
+      <button class="quick-btn" onclick="scrollSection('sec-attendance')">Attendance</button>
+      <button class="quick-btn" onclick="scrollSection('sec-volunteer')">Volunteer</button>
     </div>
   </div>
 </div>
@@ -93,6 +92,14 @@
 </div>
 
 <div class="wrap" style="padding-bottom:96px">
+
+  <!-- MEMBER GREETING -->
+  <div id="memberGreeting" style="display:none;padding:32px 0 0">
+    <div style="background:linear-gradient(150deg,var(--moss),var(--green));border-radius:var(--radius);padding:28px 32px;color:#fff">
+      <h2 id="greetingName" style="font-family:var(--display);font-size:1.8rem;font-weight:500;color:#fff;margin-bottom:6px">Hello</h2>
+      <p style="color:#dbe6cf;font-size:.96rem">Thanks for being a member of the CVHS composting club.</p>
+    </div>
+  </div>
 
   <!-- ANNOUNCEMENTS -->
   <div class="club-section" id="sec-announcements">
@@ -150,46 +157,6 @@
       <h4>Your shifts</h4>
       <div id="myShiftTags"></div>
     </div>
-  </div>
-
-  <!-- JOIN -->
-  <div class="club-section" id="sec-join">
-    <h2>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5f8050" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Join the club
-    </h2>
-    <p class="section-sub">Fill this out to officially join the CVHS composting club.</p>
-
-    <div id="alreadyMember" class="already-member" style="display:none;max-width:480px">
-      <p>You are a club member.</p>
-      <span>Thanks for being part of the team.</span>
-    </div>
-
-    <form action="https://formsubmit.co/cvhs.composting@gmail.com" method="POST" id="joinClubForm" onsubmit="markClubMember()" style="max-width:480px">
-      <input type="hidden" name="_subject" value="New Club Member — CVHS Can Compost" />
-      <input type="hidden" name="_captcha" value="false" />
-      <input type="hidden" name="_next" value="club-joined.html" />
-      <input type="hidden" name="member_phone" id="joinPhone" value="" />
-      <div class="field">
-        <label>Full name <span class="req">*</span></label>
-        <input type="text" name="name" required placeholder="Your name" id="joinName" />
-      </div>
-      <div class="field">
-        <label>Grade <span class="req">*</span></label>
-        <select name="grade" required>
-          <option value="" disabled selected>Select your grade</option>
-          <option>9th grade</option>
-          <option>10th grade</option>
-          <option>11th grade</option>
-          <option>12th grade</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Why do you want to join?</label>
-        <input type="text" name="reason" placeholder="Optional" />
-      </div>
-      <button type="submit" class="btn btn-primary">Join the club</button>
-    </form>
   </div>
 
 </div>
