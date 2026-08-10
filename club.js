@@ -230,18 +230,14 @@ function renderAttendanceHistory() {
 
 /* ── announcements ──────────────────────────────────────── */
 function renderAnnouncements() {
-  const wrap = document.getElementById('announcementsWrap');
   const list = document.getElementById('announcementsList');
-  if (!wrap || !list) return;
+  if (!list) return;
 
   if (!state.announcements.length) {
-    wrap.style.display = 'none';
+    list.innerHTML = '<p class="empty-state">No announcements yet. Check back soon.</p>';
     return;
   }
 
-  wrap.style.display = 'block';
-
-  // pinned first, then by date
   const sorted = [...state.announcements].sort((a, b) => {
     if (a.pinned && !b.pinned) return -1;
     if (!a.pinned && b.pinned) return 1;
@@ -353,6 +349,12 @@ function toast(msg, kind) {
     t.style.transform  = 'translateY(10px)';
     setTimeout(() => t.remove(), 400);
   }, 3000);
+}
+
+/* ── scroll helper ──────────────────────────────────────── */
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
 }
 
 /* ── init ───────────────────────────────────────────────── */
