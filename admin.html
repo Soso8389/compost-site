@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — CVHS Can Compost</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .admin-wrap   { max-width: 900px; margin: 0 auto; padding: 120px 24px 96px; }
+    .admin-header { margin-bottom: 40px; }
+    .admin-header h1 { font-family: var(--display); font-size: 2.4rem; font-weight: 500; color: var(--green-deep); margin-bottom: 6px; }
+    .admin-header p  { color: var(--muted); }
+    .admin-section { margin-bottom: 40px; }
+    .admin-section h2 { font-family: var(--display); font-size: 1.4rem; font-weight: 500; color: var(--green-deep); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--tan-soft); display: flex; align-items: center; gap: 10px; }
+    .admin-card { background: var(--cream); border: 1px solid var(--tan-soft); border-radius: var(--radius); padding: 28px; margin-bottom: 16px; }
+    .admin-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--tan-soft); flex-wrap: wrap; }
+    .admin-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .admin-row .ar-title { font-weight: 600; color: var(--green-deep); font-size: .96rem; }
+    .admin-row .ar-meta  { font-size: .84rem; color: var(--muted); margin-top: 2px; }
+    .admin-row .ar-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn-sm { padding: 7px 14px; font-size: .82rem; }
+    .btn-danger { background: #f5e6e2; color: #7a3b2c; }
+    .btn-danger:hover { background: #f1d4cc; transform: translateY(-1px); }
+    .inline-form { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-top: 16px; }
+    .inline-form .field { margin-bottom: 0; flex: 1; min-width: 160px; }
+    .inline-form .field input, .inline-form .field select { padding: 10px 12px; }
+    .member-pts { font-family: var(--display); font-size: 1.2rem; font-weight: 600; color: var(--green); }
+    .pin-form { max-width: 380px; margin: 0 auto; text-align: center; padding: 56px 24px; }
+    .pin-form h2 { font-family: var(--display); font-size: 2rem; margin-bottom: 8px; }
+    .pin-form p  { color: var(--muted); margin-bottom: 24px; font-size: .92rem; }
+    .tab-row { display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap; }
+    .tab-btn { padding: 9px 18px; border-radius: 100px; font-weight: 600; font-size: .88rem; color: var(--green); box-shadow: inset 0 0 0 1.5px var(--tan-soft); transition: background .2s, box-shadow .2s; }
+    .tab-btn.active { background: var(--green); color: #f3f0e6; box-shadow: none; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .badge-sm { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 100px; font-size: .75rem; font-weight: 600; }
+    .badge-sm.green { background: var(--leaf-soft); color: var(--green-deep); }
+    .badge-sm.tan   { background: var(--tan-soft);  color: var(--green); }
+    #loginView { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--beige); }
+    #adminView { display: none; }
+    .empty-admin { color: var(--muted); font-size: .92rem; padding: 16px 0; }
+  </style>
+</head>
+<body>
+
+<!-- MARQUEE -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>Admin panel</span><span>CVHS Can Compost</span>
+    <span>Admin panel</span><span>CVHS Can Compost</span>
+    <span>Admin panel</span><span>CVHS Can Compost</span>
+  </div>
+</div>
+
+<!-- LOGIN VIEW -->
+<div id="loginView">
+  <div class="pin-form">
+    <span class="logo-badge" style="margin:0 auto 20px;display:flex;width:48px;height:48px;font-size:1.3rem">CV</span>
+    <h2>Admin access</h2>
+    <p>Enter your phone number. If it matches the admin account, a password field will appear.</p>
+
+    <form id="phoneStep">
+      <div class="field" style="margin-bottom:12px">
+        <label>Phone number</label>
+        <input type="tel" id="adminPhone" placeholder="(818) 123-4567" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Continue</button>
+    </form>
+
+    <form id="passwordStep" style="display:none;margin-top:0">
+      <div class="field" style="margin-bottom:12px">
+        <label>Password</label>
+        <input type="password" id="adminPassword" placeholder="Enter your password" required autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Enter admin panel</button>
+      <p style="text-align:center;margin-top:12px;font-size:.82rem;color:var(--muted)" id="firstTimeMsg" style="display:none"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN VIEW -->
+<div id="adminView">
+  <div class="admin-wrap">
+
+    <div class="admin-header">
+      <h1>Admin panel</h1>
+      <p>Manage everything about the CVHS Can Compost site from here. <button onclick="adminLogout()" style="color:var(--moss);font-weight:600;text-decoration:underline">Log out</button></p>
+    </div>
+
+    <!-- TABS -->
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="showTab('announcements')">Announcements</button>
+      <button class="tab-btn" onclick="showTab('events')">Events</button>
+      <button class="tab-btn" onclick="showTab('codes')">Attendance codes</button>
+      <button class="tab-btn" onclick="showTab('leaderboard')">Leaderboard</button>
+      <button class="tab-btn" onclick="showTab('members')">Members</button>
+    </div>
+
+    <!-- ANNOUNCEMENTS -->
+    <div class="tab-panel active" id="tab-announcements">
+      <div class="admin-section">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Post an announcement
+        </h2>
+        <div class="admin-card">
+          <div class="field"><label>Title <span class="req">*</span></label><input type="text" id="aTitle" placeholder="e.g. Earth Day event this Friday" /></div>
+          <div class="field"><label>Message <span class="req">*</span></label><input type="text" id="aMessage" placeholder="Full announcement text" /></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <input type="checkbox" id="aPinned" style="width:auto;margin:0" />
+            <label for="aPinned" style="font-size:.88rem;color:var(--green);font-weight:600;margin:0">Pin to top</label>
+          </div>
+          <button class="btn btn-primary" onclick="postAnnouncement()">Post announcement</button>
+        </div>
+      </div>
+      <div class="admin-section">
+        <h2>Live announcements</h2>
+        <div id="adminAnnouncementsList"><p class="empty-admin">No announcements yet.</p></div>
+      </div>
+    </div>
+
+    <!-- EVENTS -->
+    <div class="tab-panel" id="tab-events">
+      <div class="admin-section">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Add an event
+        </h2>
+        <div class="admin-card">
+          <div class="field"><label>Title <span class="req">*</span></label><input type="text" id="evTitle" placeholder="e.g. Weekly meeting" /></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="field"><label>Date <span class="req">*</span></label><input type="date" id="evDate" /></div>
+            <div class="field"><label>Start time</label><input type="text" id="evStart" placeholder="3:30 PM" /></div>
+            <div class="field"><label>End time</label><input type="text" id="evEnd" placeholder="4:00 PM" /></div>
+          </div>
+          <div class="field"><label>Location</label><input type="text" id="evLocation" placeholder="e.g. Room 204" /></div>
+          <button class="btn btn-primary" onclick="addEvent()">Add event</button>
+        </div>
+      </div>
+      <div class="admin-section">
+        <h2>Upcoming events</h2>
+        <div id="adminEventsList"><p class="empty-admin">No events yet.</p></div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE CODES -->
+    <div class="tab-panel" id="tab-codes">
+      <div class="admin-section">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>
+          Create a meeting code
+        </h2>
+        <div class="admin-card">
+          <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Give this code to members at the start of a meeting for them to log attendance.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="field"><label>Code (4–6 chars) <span class="req">*</span></label><input type="text" id="codeVal" maxlength="6" placeholder="e.g. COMP01" style="text-transform:uppercase;letter-spacing:.1em;font-weight:700" /></div>
+            <div class="field"><label>Meeting label <span class="req">*</span></label><input type="text" id="codeLabel" placeholder="e.g. Nov 12 meeting" /></div>
+          </div>
+          <button class="btn btn-primary" onclick="createCode()">Create code</button>
+        </div>
+      </div>
+      <div class="admin-section">
+        <h2>Active codes</h2>
+        <div id="adminCodesList"><p class="empty-admin">No codes yet.</p></div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="tab-panel" id="tab-leaderboard">
+      <div class="admin-section">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+          Leaderboard management
+        </h2>
+        <div id="adminLeaderboard"><p class="empty-admin">Loading members...</p></div>
+      </div>
+    </div>
+
+    <!-- MEMBERS -->
+    <div class="tab-panel" id="tab-members">
+      <div class="admin-section">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          All members
+        </h2>
+        <div id="adminMembersList"><p class="empty-admin">Loading members...</p></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

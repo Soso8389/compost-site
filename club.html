@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Club Page — CVHS Can Compost</title>
+  <meta name="description" content="Join the CVHS composting club, sign up for volunteer shifts, and view upcoming events." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .club-hero {
+      padding: 120px 0 56px;
+      background:
+        radial-gradient(55% 50% at 88% 0%, rgba(143,174,125,.18), transparent 70%),
+        radial-gradient(48% 60% at 0% 100%, rgba(203,184,154,.18), transparent 70%);
+    }
+    .club-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 48px;
+    }
+    .club-panel {
+      background: var(--cream);
+      border: 1px solid var(--tan-soft);
+      border-radius: var(--radius);
+      padding: 32px;
+    }
+    .club-panel h3 {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 8px;
+    }
+    .club-panel .sub {
+      color: var(--muted); font-size: .9rem; margin-bottom: 22px;
+    }
+    .shift-options {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
+    }
+    .shift-opt {
+      border: 1.5px solid var(--tan-soft); border-radius: var(--radius-sm);
+      padding: 12px 14px; cursor: pointer; transition: border-color .2s, background .2s;
+      font-size: .92rem; font-weight: 500; color: var(--green); text-align: left;
+    }
+    .shift-opt:hover   { border-color: var(--moss); background: rgba(143,174,125,.07); }
+    .shift-opt.selected { border-color: var(--moss); background: var(--leaf-soft); color: var(--green-deep); }
+    .event-item {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--tan-soft);
+    }
+    .event-item:last-child { border-bottom: none; }
+    .event-item .ei-title { font-weight: 600; color: var(--green-deep); font-size: .96rem; }
+    .event-item .ei-meta  { font-size: .84rem; color: var(--muted); margin-top: 2px; }
+    .event-item .ei-date  {
+      font-family: var(--display); font-size: 1rem; font-weight: 600;
+      color: var(--moss); text-align: right; white-space: nowrap;
+    }
+    .attendance-box {
+      background: var(--beige); border: 1.5px dashed var(--tan);
+      border-radius: var(--radius-sm); padding: 20px; text-align: center; margin-bottom: 16px;
+    }
+    .attendance-box p { color: var(--muted); font-size: .9rem; margin-bottom: 12px; }
+    .code-input {
+      width: 100%; text-align: center; font-size: 1.8rem; font-family: var(--display);
+      font-weight: 600; letter-spacing: .2em; padding: 12px;
+      border: 1.5px solid var(--tan-soft); border-radius: var(--radius-sm);
+      background: #fff; color: var(--green-deep); text-transform: uppercase;
+    }
+    .code-input:focus { outline: none; border-color: var(--moss); box-shadow: 0 0 0 3px rgba(143,174,125,.18); }
+    .my-shifts { margin-top: 16px; }
+    .my-shifts h4 { font-size: .82rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+    .shift-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--leaf-soft); color: var(--green-deep);
+      padding: 6px 12px; border-radius: 100px; font-size: .84rem; font-weight: 600;
+      margin: 4px 4px 0 0;
+    }
+    .empty-state { color: var(--muted); font-size: .92rem; padding: 8px 0; }
+    @media (max-width: 860px) {
+      .club-grid { grid-template-columns: 1fr; }
+      .shift-options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- MARQUEE -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>Welcome to the club</span>
+    <span>Sign up for a volunteer shift</span>
+    <span>Log your meeting attendance</span>
+    <span>Check the event calendar</span>
+    <span>Welcome to the club</span>
+    <span>Sign up for a volunteer shift</span>
+    <span>Log your meeting attendance</span>
+    <span>Check the event calendar</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <a href="index.html" class="brand">
+    <span class="logo-badge">CV</span>
+    CVHS Can Compost
+  </a>
+  <div class="nav-links">
+    <a href="index.html#learn">Learn</a>
+    <a href="index.html#sort">Sort</a>
+    <a href="index.html#gogreen">Win</a>
+    <a href="index.html#volunteer">Volunteer</a>
+  </div>
+  <div class="nav-cta" id="navCta"></div>
+</nav>
+
+<!-- HERO -->
+<div class="club-hero">
+  <div class="wrap">
+    <span class="eyebrow">Member area</span>
+    <h1 style="font-size:clamp(2.2rem,5vw,3.6rem);font-family:var(--display);font-weight:500;color:var(--green-deep);line-height:1.08;margin:12px 0 16px">
+      The CVHS compost club.
+    </h1>
+    <p class="lead">Sign up for shifts, log attendance, and stay up to date with everything the club has going on.</p>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="wrap" style="padding-bottom:96px">
+
+  <!-- NOT LOGGED IN BANNER -->
+  <div id="guestBanner" style="display:none;margin-top:32px">
+    <div style="background:var(--cream);border:1px solid var(--tan-soft);border-radius:var(--radius);padding:28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+      <div>
+        <p style="font-weight:600;color:var(--green-deep)">You are not signed in.</p>
+        <p style="color:var(--muted);font-size:.9rem">Sign in or create an account to sign up for shifts and log attendance.</p>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" style="padding:9px 18px" onclick="openAuth()">Sign in</button>
+        <button class="btn btn-primary" style="padding:9px 18px" onclick="openJoin()">Join</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANNOUNCEMENTS -->
+  <div id="announcementsWrap" style="margin-top:32px;display:none">
+    <div style="margin-bottom:24px">
+      <span class="eyebrow">Announcements</span>
+    </div>
+    <div id="announcementsList"></div>
+  </div>
+
+  <div class="club-grid" style="margin-top:32px">
+
+    <!-- JOIN THE CLUB -->
+    <div class="club-panel" id="joinPanel">
+      <h3>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5f8050" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Join the club
+      </h3>
+      <p class="sub">Fill this out to officially join the CVHS composting club.</p>
+      <form action="https://formsubmit.co/cvhs.composting@gmail.com" method="POST" id="joinClubForm">
+        <input type="hidden" name="_subject" value="New Club Member — CVHS Can Compost" />
+        <input type="hidden" name="_captcha" value="false" />
+        <input type="hidden" name="_next" value="club-joined.html" />
+        <input type="hidden" name="member_phone" id="joinPhone" value="" />
+        <div class="field">
+          <label>Full name <span class="req">*</span></label>
+          <input type="text" name="name" required placeholder="Your name" id="joinName" />
+        </div>
+        <div class="field">
+          <label>Grade <span class="req">*</span></label>
+          <select name="grade" required>
+            <option value="" disabled selected>Select your grade</option>
+            <option>9th grade</option>
+            <option>10th grade</option>
+            <option>11th grade</option>
+            <option>12th grade</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Why do you want to join?</label>
+          <input type="text" name="reason" placeholder="Optional" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Join the club</button>
+      </form>
+      <div id="alreadyMember" style="display:none;text-align:center;padding:20px 0">
+        <p style="color:var(--moss);font-weight:600;margin-bottom:6px">You are a club member.</p>
+        <p style="color:var(--muted);font-size:.88rem">Thanks for being part of the team.</p>
+      </div>
+    </div>
+
+    <!-- VOLUNTEER SHIFTS -->
+    <div class="club-panel">
+      <h3>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5f8050" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Volunteer shifts
+      </h3>
+      <p class="sub">Pick a lunch shift to staff the compost station. 12:51 to 1:21 PM. Counts as service hours.</p>
+      <div class="shift-options" id="shiftOptions">
+        <button class="shift-opt" data-shift="Monday"    onclick="selectShift(this)">Monday</button>
+        <button class="shift-opt" data-shift="Tuesday"   onclick="selectShift(this)">Tuesday</button>
+        <button class="shift-opt" data-shift="Wednesday" onclick="selectShift(this)">Wednesday</button>
+        <button class="shift-opt" data-shift="Thursday"  onclick="selectShift(this)">Thursday</button>
+        <button class="shift-opt" data-shift="Friday"    onclick="selectShift(this)">Friday</button>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="confirmShift()">Sign up for shift</button>
+      <div class="my-shifts" id="myShifts" style="margin-top:20px;display:none">
+        <h4>Your shifts</h4>
+        <div id="myShiftTags"></div>
+      </div>
+    </div>
+
+    <!-- MEETING ATTENDANCE -->
+    <div class="club-panel">
+      <h3>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5f8050" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>
+        Log attendance
+      </h3>
+      <p class="sub">Enter the meeting code your club lead gives you at the start of each meeting.</p>
+      <div class="attendance-box">
+        <p>Ask your club lead for today's code</p>
+        <input type="text" class="code-input" id="attendanceCode" maxlength="6" placeholder="••••••" />
+      </div>
+      <button class="btn btn-primary btn-block" onclick="submitAttendance()">Log attendance</button>
+      <div id="attendanceHistory" style="margin-top:16px"></div>
+    </div>
+
+    <!-- EVENT CALENDAR -->
+    <div class="club-panel">
+      <h3>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5f8050" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Upcoming events
+      </h3>
+      <p class="sub">Meetings, events, and important dates for the club.</p>
+      <div id="eventCalendar"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="brand" style="margin-bottom:14px">
+          <span class="logo-badge alt">CV</span>
+          CVHS Can Compost
+        </div>
+        <p style="font-size:.92rem;max-width:34ch;color:#c5d2b8">Keeping food waste out of the landfill, one lunch tray at a time.</p>
+      </div>
+      <div>
+        <h5>Explore</h5>
+        <a href="index.html#learn">What is composting</a>
+        <a href="index.html#sort">Sorting guide</a>
+        <a href="index.html#gogreen">Go Green incentive</a>
+        <a href="index.html#volunteer">Volunteer</a>
+      </div>
+      <div>
+        <h5>Connect</h5>
+        <a href="mailto:cvhs.composting@gmail.com">Help and support</a>
+        <a href="admin.html">Admin</a>
+        <a href="index.html">Back to main site</a>
+      </div>
+    </div>
+    <div class="footer-bot">
+      <span>Made by Soren Cooper &copy; 2026</span>
+      <span>CVHS Can Compost</span>
+    </div>
+  </div>
+</footer>
+
+<!-- AUTH MODAL (same as index) -->
+<div class="overlay" id="authOverlay">
+  <div class="modal">
+    <button class="x" onclick="closeAuth()">Close</button>
+    <div class="modal-head">
+      <span class="logo-badge" style="margin:0 auto 12px;display:flex">CV</span>
+      <h3 id="authTitle">Welcome</h3>
+      <p id="authSub">Sign up or log in to access club features.</p>
+    </div>
+    <div class="modal-tabs">
+      <button id="tabLogin"  class="active" onclick="switchTab('login')">Log in</button>
+      <button id="tabSignup"              onclick="switchTab('signup')">Sign up</button>
+    </div>
+    <div class="modal-pane active" id="paneLogin">
+      <form id="loginForm">
+        <div class="field">
+          <label>Phone number <span class="req">*</span></label>
+          <input type="tel" name="phone" required placeholder="(818) 123-4567" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Log in</button>
+      </form>
+      <p class="modal-foot">No account? <button onclick="switchTab('signup')">Sign up</button></p>
+    </div>
+    <div class="modal-pane" id="paneSignup">
+      <form id="signupForm">
+        <div class="field">
+          <label>Name <span class="req">*</span></label>
+          <input type="text" name="name" required placeholder="Your name" />
+        </div>
+        <div class="field">
+          <label>Phone number <span class="req">*</span></label>
+          <input type="tel" name="phone" required placeholder="(818) 123-4567" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Create account</button>
+      </form>
+      <p class="modal-foot">Already a member? <button onclick="switchTab('login')">Log in</button></p>
+    </div>
+    <p class="guest-link">or <button onclick="browseAsGuest()">browse as a guest</button></p>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script src="club.js"></script>
+</body>
+</html>

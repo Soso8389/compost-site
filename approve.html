@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Approve claim — CVHS Can Compost</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 60px 24px; }
+    .card { background: var(--cream); border: 1px solid var(--tan-soft); border-radius: 24px; padding: 56px 40px; max-width: 480px; width: 100%; text-align: center; }
+    .icon { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+    .icon.ok  { background: var(--leaf-soft); color: var(--green); }
+    .icon.bad { background: #f5e6e2; color: #7a3b2c; }
+    h1 { font-size: 2rem; margin-bottom: 12px; }
+    p  { color: var(--muted); margin-bottom: 28px; }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="card">
+    <div class="icon ok" id="icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <h1 id="title">Approving...</h1>
+    <p id="msg">Adding a point to this account.</p>
+    <a href="index.html" class="btn btn-primary" id="backBtn" style="display:none">Back to the site</a>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script>
+  const CFG = window.CONFIG || {};
+  const FB  = CFG.firebase || {};
+
+  async function approve() {
+    const params = new URLSearchParams(window.location.search);
+    const phone  = params.get('phone');
+
+    if (!phone) {
+      document.getElementById('title').textContent = 'Invalid link.';
+      document.getElementById('msg').textContent   = 'No phone number found in this URL.';
+      document.getElementById('icon').className    = 'icon bad';
+      document.getElementById('backBtn').style.display = 'inline-flex';
+      return;
+    }
+
+    try {
+      firebase.initializeApp(FB);
+      const db = firebase.firestore();
+      await firebase.auth().signInAnonymously();
+
+      const ref = db.collection('users').doc(phone);
+      const doc = await ref.get();
+
+      if (!doc.exists) {
+        document.getElementById('title').textContent = 'User not found.';
+        document.getElementById('msg').textContent   = 'No account with phone number ' + phone + '.';
+        document.getElementById('icon').className    = 'icon bad';
+        document.getElementById('backBtn').style.display = 'inline-flex';
+        return;
+      }
+
+      const user = doc.data();
+      const newPoints = (user.points || 0) + 1;
+      const newContrib = (user.contributions || []).concat([{ ts: Date.now(), approved: true }]);
+
+      await ref.update({ points: newPoints, contributions: newContrib });
+
+      document.getElementById('title').textContent = 'Approved.';
+      document.getElementById('msg').textContent   = '1 point added to ' + user.name + '. They now have ' + newPoints + ' point' + (newPoints === 1 ? '' : 's') + '.';
+      document.getElementById('backBtn').style.display = 'inline-flex';
+
+    } catch (e) {
+      document.getElementById('title').textContent = 'Something went wrong.';
+      document.getElementById('msg').textContent   = e.message;
+      document.getElementById('icon').className    = 'icon bad';
+      document.getElementById('backBtn').style.display = 'inline-flex';
+    }
+  }
+
+  approve();
+</script>
+</body>
+</html>
