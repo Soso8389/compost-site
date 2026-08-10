@@ -79,10 +79,10 @@ async function findUser(phone) {
 
 /* ── nav ─────────────────────────────────────────────────── */
 function renderNav() {
-  const cta  = document.getElementById('navCta');
-  const hero = document.getElementById('heroActions');
+  const cta      = document.getElementById('navCta');
+  const hero     = document.getElementById('heroActions');
+  const mobileAuth = document.getElementById('mobileMenuAuth');
 
-  // Use session directly — no need to wait for Firestore
   if (isLoggedIn()) {
     cta.innerHTML = `
       <a href="club.html" class="btn btn-ghost" style="padding:9px 18px">Club page</a>
@@ -90,6 +90,9 @@ function renderNav() {
     if (hero) hero.innerHTML = `
       <a href="club.html" class="btn btn-primary">Club page</a>
       <button class="btn btn-ghost" onclick="logout()">Log out</button>`;
+    if (mobileAuth) mobileAuth.innerHTML = `
+      <a href="club.html" class="m-primary" onclick="closeMenu()">Club page</a>
+      <button onclick="logout();closeMenu()" style="color:var(--muted)">Log out</button>`;
   } else {
     cta.innerHTML = `
       <button class="btn btn-ghost"   style="padding:9px 18px" onclick="openAuth()">Sign in</button>
@@ -97,7 +100,28 @@ function renderNav() {
     if (hero) hero.innerHTML = `
       <button class="btn btn-primary" onclick="openJoin()">Get involved</button>
       <a href="#gogreen" class="btn btn-ghost">Win a gift card</a>`;
+    if (mobileAuth) mobileAuth.innerHTML = `
+      <button onclick="openAuth();closeMenu()">Sign in</button>
+      <button class="m-primary" onclick="openJoin();closeMenu()">Join the club</button>`;
   }
+}
+
+/* ── mobile menu ─────────────────────────────────────────── */
+function toggleMenu() {
+  const menu = document.getElementById('mobileMenu');
+  const btn  = document.getElementById('hamburger');
+  if (!menu) return;
+  const open = menu.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+function closeMenu() {
+  const menu = document.getElementById('mobileMenu');
+  const btn  = document.getElementById('hamburger');
+  if (!menu) return;
+  menu.classList.remove('open');
+  if (btn) btn.classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 /* ── auth ───────────────────────────────────────────────── */

@@ -61,7 +61,21 @@
     <a href="index.html#volunteer">Volunteer</a>
   </div>
   <div class="nav-cta" id="navCta"></div>
+  <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html#learn" onclick="closeMenu()">Learn</a>
+  <a href="index.html#sort" onclick="closeMenu()">Sort</a>
+  <a href="index.html#gogreen" onclick="closeMenu()">Win a gift card</a>
+  <a href="index.html#volunteer" onclick="closeMenu()">Volunteer</a>
+  <div class="m-divider"></div>
+  <a href="index.html" onclick="closeMenu()">Main site</a>
+  <div id="mobileMenuAuth"></div>
+</div>
 
 <div class="club-hero">
   <div class="wrap">

@@ -104,16 +104,42 @@ function renderAll() {
 
 /* ── nav ────────────────────────────────────────────────── */
 function renderNav() {
-  const cta = document.getElementById('navCta');
+  const cta        = document.getElementById('navCta');
+  const mobileAuth = document.getElementById('mobileMenuAuth');
+
   if (isLoggedIn()) {
     cta.innerHTML = `
       <a href="club.html" class="btn btn-ghost" style="padding:9px 18px">Club page</a>
       <button class="btn btn-primary" style="padding:9px 18px" onclick="logout()">Log out</button>`;
+    if (mobileAuth) mobileAuth.innerHTML = `
+      <a href="club.html" class="m-primary" onclick="closeMenu()">Club page</a>
+      <button onclick="logout();closeMenu()" style="color:var(--muted)">Log out</button>`;
   } else {
     cta.innerHTML = `
       <button class="btn btn-ghost"   style="padding:9px 18px" onclick="openAuth()">Sign in</button>
       <button class="btn btn-primary" style="padding:9px 18px" onclick="openJoin()">Join</button>`;
+    if (mobileAuth) mobileAuth.innerHTML = `
+      <button onclick="openAuth();closeMenu()">Sign in</button>
+      <button class="m-primary" onclick="openJoin();closeMenu()">Join the club</button>`;
   }
+}
+
+/* ── mobile menu ─────────────────────────────────────────── */
+function toggleMenu() {
+  const menu = document.getElementById('mobileMenu');
+  const btn  = document.getElementById('hamburger');
+  if (!menu) return;
+  const open = menu.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+function closeMenu() {
+  const menu = document.getElementById('mobileMenu');
+  const btn  = document.getElementById('hamburger');
+  if (!menu) return;
+  menu.classList.remove('open');
+  if (btn) btn.classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 /* ── guest banner ───────────────────────────────────────── */
