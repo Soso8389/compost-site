@@ -179,8 +179,6 @@ async function postAnnouncement() {
   } catch (e) { toast('Failed to post.', 'bad'); console.error(e); }
 }
 
-}
-
 async function deleteAnnouncement(id) {
   if (!confirm('Delete this announcement?')) return;
   try { await db.collection('announcements').doc(id).delete(); toast('Deleted.', 'ok'); }
