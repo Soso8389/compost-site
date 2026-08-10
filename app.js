@@ -252,6 +252,12 @@ function closeGiftModal() {
   document.body.style.overflow = '';
 }
 
+/* ── stats ──────────────────────────────────────────────── */
+function renderStats() {
+  const el = document.getElementById('statMembers');
+  if (el) el.textContent = Object.keys(state.users).length;
+}
+
 /* ── nav scroll ─────────────────────────────────────────── */
 window.addEventListener('scroll', () => {
   document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
@@ -330,6 +336,7 @@ function toast(msg, kind) {
 }
 
 /* ── init ───────────────────────────────────────────────── */
-renderNav();     // instant — reads localStorage, no Firebase needed
-renderBoard();   // renders placeholder until Firestore loads
-initFirebase();  // async — loads Firestore data in background
+renderNav();
+renderBoard();
+renderStats();
+initFirebase();
