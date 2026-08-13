@@ -133,18 +133,15 @@ function enterAdmin(phone, isSuper, permissions) {
 function applyPermissions() {
   if (state.isSuper) return; // super admin sees everything
   const allowed = state.permissions;
-  const allTabs = ['announcements','events','codes','leaderboard','members','stats'];
+  const allTabs = ['announcements','events','codes','leaderboard','members','stats','admins'];
   allTabs.forEach(tab => {
-    const btn = document.querySelector(`.tab-btn[onclick="showTab('${tab}')"]`);
+    const btn   = document.querySelector(`.tab-btn[onclick="showTab('${tab}')"]`);
     const panel = document.getElementById('tab-' + tab);
     if (!allowed.includes(tab)) {
       if (btn)   btn.style.display   = 'none';
       if (panel) panel.style.display = 'none';
     }
   });
-  // hide the admins tab for secondary admins always
-  const adminsBtn = document.getElementById('tabAdmins');
-  if (adminsBtn) adminsBtn.style.display = 'none';
   // show first allowed tab
   if (allowed.length) showTab(allowed[0]);
 }
@@ -204,8 +201,8 @@ function showTab(name) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   const panel = document.getElementById('tab-' + name);
-  if (panel) panel.classList.add('active');
-  // match button by its onclick attribute exactly
+  if (!panel) { console.warn('Tab panel not found: tab-' + name); return; }
+  panel.classList.add('active');
   const btn = document.querySelector(`.tab-btn[onclick="showTab('${name}')"]`);
   if (btn) btn.classList.add('active');
 }
