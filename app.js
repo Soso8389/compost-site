@@ -12,7 +12,7 @@ const USE_FIRESTORE = !!(FB.apiKey && FB.projectId);
 let db = null;
 
 /* ── state ──────────────────────────────────────────────── */
-const state = { users: {}, ready: false };
+const state = { users: {}, lbs: 0, ready: false };
 
 /* ── helpers ────────────────────────────────────────────── */
 function normPhone(p)   { return (p || '').replace(/\D/g, ''); }
@@ -34,6 +34,11 @@ async function initFirebase() {
     firebase.initializeApp(FB);
     db = firebase.firestore();
     await firebase.auth().signInAnonymously();
+    // listen for lbs stat
+    db.collection('system').doc('stats').onSnapshot(doc => {
+      if (doc.exists) { state.lbs = doc.data().lbs || 0; renderStats(); }
+    });
+
     db.collection('users').onSnapshot(snap => {
       const next = {};
       snap.forEach(doc => { next[doc.id] = doc.data(); });
@@ -259,13 +264,8 @@ function closeGiftModal() {
 function renderStats() {
   const members = document.getElementById('statMembers');
   const lbs     = document.getElementById('statLbs');
-  const count   = Object.keys(state.users).length;
-  const lbsVal  = Math.round(
-    Object.values(state.users).reduce((s, u) => s + (u.contributions || []).length, 0)
-    * (CFG.lbsPerContribution || 0.5)
-  );
-  if (members) members.textContent = count;
-  if (lbs)     lbs.textContent     = lbsVal;
+  if (members) members.textContent = Object.keys(state.users).length;
+  if (lbs)     lbs.textContent     = state.lbs || 0;
 }
 
 /* ── nav scroll ─────────────────────────────────────────── */

@@ -9,7 +9,7 @@ const ADMIN_PHONE  = (CFG.adminPhone || '8182793907').replace(/\D/g, '');
 const SMS_URL      = 'https://compost-site.vercel.app/api/send-sms';
 
 let db = null;
-const state = { users: {}, events: [], codes: {}, announcements: [], authed: false };
+const state = { users: {}, events: [], codes: {}, announcements: [], admins: {}, lbs: 0, authed: false, isSuper: false, permissions: [] };
 
 /* ── crypto helpers ─────────────────────────────────────── */
 async function sha256(str) {
@@ -29,16 +29,33 @@ async function initFirebase() {
 }
 
 /* ── STEP 1: phone check ────────────────────────────────── */
-document.getElementById('phoneStep').addEventListener('submit', e => {
+document.getElementById('phoneStep').addEventListener('submit', async e => {
   e.preventDefault();
   const entered = document.getElementById('adminPhone').value.replace(/\D/g, '');
-  if (entered !== ADMIN_PHONE) {
-    toast('That is not the admin number.', 'bad');
+
+  if (entered === ADMIN_PHONE) {
+    document.getElementById('phoneStep').style.display    = 'none';
+    document.getElementById('passwordStep').style.display = 'block';
+    checkFirstTime();
     return;
   }
-  document.getElementById('phoneStep').style.display    = 'none';
-  document.getElementById('passwordStep').style.display = 'block';
-  checkFirstTime();
+
+  // check if secondary admin
+  try {
+    const doc = await db.collection('admin').doc('secondary').get();
+    if (doc.exists && doc.data().admins && doc.data().admins[entered]) {
+      document.getElementById('phoneStep').style.display    = 'none';
+      document.getElementById('passwordStep').style.display = 'block';
+      const entry = doc.data().admins[entered];
+      if (!entry.passwordHash) {
+        document.getElementById('firstTimeMsg').textContent = 'First time setup: enter a password to set it.';
+        document.getElementById('firstTimeMsg').style.display = 'block';
+      }
+      return;
+    }
+  } catch(err) { console.warn(err); }
+
+  toast('That is not an admin number.', 'bad');
 });
 
 async function checkFirstTime() {
@@ -56,45 +73,87 @@ async function checkFirstTime() {
 /* ── STEP 2: password ───────────────────────────────────── */
 document.getElementById('passwordStep').addEventListener('submit', async e => {
   e.preventDefault();
-  const pw   = document.getElementById('adminPassword').value;
-  const hash = await sha256(pw + ADMIN_PHONE);
+  const pw      = document.getElementById('adminPassword').value;
+  const phone   = document.getElementById('adminPhone').value.replace(/\D/g,'');
+  const isSuper = phone === ADMIN_PHONE;
+  const hash    = await sha256(pw + phone);
 
   try {
-    const ref = db.collection('admin').doc('auth');
-    const doc = await ref.get();
-
-    if (!doc.exists || !doc.data().passwordHash) {
-      // first time — set the password
-      await ref.set({ passwordHash: hash });
-      toast('Password set. Welcome.', 'ok');
-      enterAdmin();
-      return;
+    if (isSuper) {
+      // super admin
+      const ref = db.collection('admin').doc('auth');
+      const doc = await ref.get();
+      if (!doc.exists || !doc.data().passwordHash) {
+        await ref.set({ passwordHash: hash });
+        toast('Password set. Welcome.', 'ok');
+        enterAdmin(phone, true, []);
+        return;
+      }
+      if (doc.data().passwordHash !== hash) { toast('Incorrect password.', 'bad'); return; }
+      enterAdmin(phone, true, []);
+    } else {
+      // secondary admin
+      const ref = db.collection('admin').doc('secondary');
+      const doc = await ref.get();
+      if (!doc.exists) { toast('No admin account found for that number.', 'bad'); return; }
+      const admins = doc.data().admins || {};
+      const entry  = admins[phone];
+      if (!entry)  { toast('No admin account found for that number.', 'bad'); return; }
+      if (!entry.passwordHash) {
+        // first time — set password
+        admins[phone].passwordHash = hash;
+        await ref.set({ admins });
+        toast('Password set. Welcome.', 'ok');
+        enterAdmin(phone, false, entry.permissions || []);
+        return;
+      }
+      if (entry.passwordHash !== hash) { toast('Incorrect password.', 'bad'); return; }
+      enterAdmin(phone, false, entry.permissions || []);
     }
-
-    if (doc.data().passwordHash !== hash) {
-      toast('Incorrect password.', 'bad');
-      return;
-    }
-
-    enterAdmin();
-  } catch (e) {
+  } catch (err) {
     toast('Could not verify password. Check your connection.', 'bad');
-    console.error(e);
+    console.error(err);
   }
 });
 
 /* ── enter admin ────────────────────────────────────────── */
-function enterAdmin() {
-  state.authed = true;
+function enterAdmin(phone, isSuper, permissions) {
+  state.authed      = true;
+  state.isSuper     = isSuper;
+  state.permissions = permissions || [];
   sessionStorage.setItem('cvhs_admin', '1');
+  sessionStorage.setItem('cvhs_admin_super', isSuper ? '1' : '0');
+  sessionStorage.setItem('cvhs_admin_perms', JSON.stringify(permissions || []));
   document.getElementById('loginView').style.display = 'none';
   document.getElementById('adminView').style.display = 'block';
+  applyPermissions();
   startListeners();
+}
+
+function applyPermissions() {
+  if (state.isSuper) return; // super admin sees everything
+  const allowed = state.permissions;
+  const allTabs = ['announcements','events','codes','leaderboard','members','stats'];
+  allTabs.forEach(tab => {
+    const btn = document.querySelector(`.tab-btn[onclick="showTab('${tab}')"]`);
+    const panel = document.getElementById('tab-' + tab);
+    if (!allowed.includes(tab)) {
+      if (btn)   btn.style.display   = 'none';
+      if (panel) panel.style.display = 'none';
+    }
+  });
+  // hide the admins tab for secondary admins always
+  const adminsBtn = document.getElementById('tabAdmins');
+  if (adminsBtn) adminsBtn.style.display = 'none';
+  // show first allowed tab
+  if (allowed.length) showTab(allowed[0]);
 }
 
 function adminLogout() {
   sessionStorage.removeItem('cvhs_admin');
-  state.authed = false;
+  sessionStorage.removeItem('cvhs_admin_super');
+  sessionStorage.removeItem('cvhs_admin_perms');
+  state.authed = false; state.isSuper = false; state.permissions = [];
   document.getElementById('loginView').style.display = 'flex';
   document.getElementById('adminView').style.display = 'none';
   document.getElementById('phoneStep').style.display    = 'block';
@@ -124,6 +183,19 @@ function startListeners() {
     state.announcements = [];
     snap.forEach(doc => state.announcements.push({ id: doc.id, ...doc.data() }));
     renderAdminAnnouncements();
+  });
+
+  db.collection('admin').doc('secondary').onSnapshot(doc => {
+    state.admins = doc.exists ? (doc.data().admins || {}) : {};
+    renderAdminsList();
+  });
+
+  db.collection('system').doc('stats').onSnapshot(doc => {
+    state.lbs = doc.exists ? (doc.data().lbs || 0) : 0;
+    const el = document.getElementById('currentLbs');
+    if (el) el.textContent = state.lbs;
+    const inp = document.getElementById('lbsInput');
+    if (inp && !inp.value) inp.value = state.lbs;
   });
 }
 
@@ -370,6 +442,72 @@ async function deleteMember(phone) {
   } catch (e) { toast('Failed to delete.', 'bad'); console.error(e); }
 }
 
+/* ── lbs stat ───────────────────────────────────────────── */
+async function saveLbs() {
+  const val = parseInt(document.getElementById('lbsInput').value);
+  if (isNaN(val) || val < 0) { toast('Enter a valid number.', 'bad'); return; }
+  try {
+    await db.collection('system').doc('stats').set({ lbs: val });
+    toast('Pounds composted updated to ' + val + '.', 'ok');
+    document.getElementById('currentLbs').textContent = val;
+  } catch (e) { toast('Failed to save.', 'bad'); console.error(e); }
+}
+
+/* ── secondary admins ───────────────────────────────────── */
+async function addSecondaryAdmin() {
+  const phone = document.getElementById('newAdminPhone').value.replace(/\D/g,'');
+  if (phone.length < 10) { toast('Enter a valid phone number.', 'bad'); return; }
+  if (phone === ADMIN_PHONE) { toast('That is the primary admin number.', 'bad'); return; }
+
+  const checked = [...document.querySelectorAll('.admin-perm:checked')].map(c => c.value);
+  if (!checked.length) { toast('Select at least one permission.', 'bad'); return; }
+
+  try {
+    const ref = db.collection('admin').doc('secondary');
+    const doc = await ref.get();
+    const admins = doc.exists ? (doc.data().admins || {}) : {};
+    admins[phone] = { phone, permissions: checked, addedAt: Date.now(), passwordHash: null };
+    await ref.set({ admins });
+    document.getElementById('newAdminPhone').value = '';
+    document.querySelectorAll('.admin-perm').forEach(c => c.checked = false);
+    toast('Secondary admin added. They can now log in and set their password.', 'ok');
+  } catch (e) { toast('Failed to add admin.', 'bad'); console.error(e); }
+}
+
+async function removeSecondaryAdmin(phone) {
+  if (!confirm('Remove this admin?')) return;
+  try {
+    const ref = db.collection('admin').doc('secondary');
+    const doc = await ref.get();
+    const admins = doc.exists ? (doc.data().admins || {}) : {};
+    delete admins[phone];
+    await ref.set({ admins });
+    toast('Admin removed.', 'ok');
+  } catch (e) { toast('Failed to remove.', 'bad'); }
+}
+
+function renderAdminsList() {
+  const el = document.getElementById('adminsList');
+  if (!el) return;
+  const list = Object.values(state.admins);
+  if (!list.length) { el.innerHTML = '<p class="empty-admin">No secondary admins yet.</p>'; return; }
+  el.innerHTML = list.map(a => `
+    <div class="admin-row">
+      <div>
+        <div class="ar-title">${formatPhone(a.phone)}</div>
+        <div class="ar-meta">Permissions: ${a.permissions.join(', ')} &middot; ${a.passwordHash ? 'Password set' : 'Awaiting first login'}</div>
+      </div>
+      <div class="ar-actions">
+        <button class="btn btn-danger btn-sm" onclick="removeSecondaryAdmin('${a.phone}')">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+function formatPhone(p) {
+  const m = (p||'').replace(/\D/g,'');
+  return m.length === 10 ? '('+m.slice(0,3)+') '+m.slice(3,6)+'-'+m.slice(6) : p;
+}
+
 /* ── toast ──────────────────────────────────────────────── */
 function toast(msg, kind) {
   const wrap = document.getElementById('toastWrap');
@@ -388,7 +526,9 @@ function toast(msg, kind) {
 /* ── init ───────────────────────────────────────────────── */
 // stay logged in for the session
 if (sessionStorage.getItem('cvhs_admin') === '1') {
-  initFirebase().then(enterAdmin);
+  const isSuper = sessionStorage.getItem('cvhs_admin_super') === '1';
+  const perms   = JSON.parse(sessionStorage.getItem('cvhs_admin_perms') || '[]');
+  initFirebase().then(() => enterAdmin(null, isSuper, perms));
 } else {
   initFirebase();
 }
