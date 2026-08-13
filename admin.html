@@ -196,6 +196,56 @@
       </div>
     </div>
 
+    <!-- STATS TAB -->
+    <div class="tab-panel" id="tab-stats">
+      <div class="admin-section">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+          Pounds composted
+        </h2>
+        <div class="admin-card">
+          <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Update the pounds composted counter shown on the main site homepage.</p>
+          <div class="field" style="max-width:240px">
+            <label>Total pounds composted</label>
+            <input type="number" id="lbsInput" placeholder="0" min="0" />
+          </div>
+          <button class="btn btn-primary" onclick="saveLbs()">Save</button>
+          <p style="font-size:.82rem;color:var(--muted);margin-top:10px">Current value: <strong id="currentLbs">loading...</strong> lbs</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMINS TAB -->
+    <div class="tab-panel" id="tab-admins">
+      <div class="admin-section">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Add a secondary admin
+        </h2>
+        <div class="admin-card">
+          <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Secondary admins log in the same way you do but only see the tabs you give them access to. They cannot add other admins.</p>
+          <div class="field">
+            <label>Phone number <span class="req">*</span></label>
+            <input type="tel" id="newAdminPhone" placeholder="(818) 123-4567" />
+          </div>
+          <p style="font-size:.82rem;font-weight:600;color:var(--green);margin-bottom:10px">Permissions</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="announcements" style="width:auto;margin:0" /> Announcements</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="events" style="width:auto;margin:0" /> Events</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="codes" style="width:auto;margin:0" /> Attendance codes</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="leaderboard" style="width:auto;margin:0" /> Leaderboard</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="members" style="width:auto;margin:0" /> Members</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="stats" style="width:auto;margin:0" /> Stats</label>
+          </div>
+          <button class="btn btn-primary" onclick="addSecondaryAdmin()">Add admin</button>
+        </div>
+      </div>
+      <div class="admin-section">
+        <h2>Secondary admins</h2>
+        <div id="adminsList"><p class="empty-admin">No secondary admins yet.</p></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
