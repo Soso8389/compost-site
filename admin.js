@@ -203,10 +203,11 @@ function startListeners() {
 function showTab(name) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => {
-    if (b.textContent.toLowerCase().replace(/\s/g,'').includes(name.replace(/-/g,''))) b.classList.add('active');
-  });
+  const panel = document.getElementById('tab-' + name);
+  if (panel) panel.classList.add('active');
+  // match button by its onclick attribute exactly
+  const btn = document.querySelector(`.tab-btn[onclick="showTab('${name}')"]`);
+  if (btn) btn.classList.add('active');
 }
 
 /* ── announcements ──────────────────────────────────────── */
