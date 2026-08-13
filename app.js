@@ -254,8 +254,15 @@ function closeGiftModal() {
 
 /* ── stats ──────────────────────────────────────────────── */
 function renderStats() {
-  const el = document.getElementById('statMembers');
-  if (el) el.textContent = Object.keys(state.users).length;
+  const members = document.getElementById('statMembers');
+  const lbs     = document.getElementById('statLbs');
+  const count   = Object.keys(state.users).length;
+  const lbsVal  = Math.round(
+    Object.values(state.users).reduce((s, u) => s + (u.contributions || []).length, 0)
+    * (CFG.lbsPerContribution || 0.5)
+  );
+  if (members) members.textContent = count;
+  if (lbs)     lbs.textContent     = lbsVal;
 }
 
 /* ── nav scroll ─────────────────────────────────────────── */

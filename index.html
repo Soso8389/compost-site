@@ -67,14 +67,22 @@
 <!-- HERO -->
 <header class="hero" id="top">
   <div class="hero-bg"></div>
-  <div class="wrap hero-inner reveal">
-    <span class="eyebrow">CVHS sustainability</span>
-    <h1>The future of CVHS has<br>never looked so <em>green</em>.</h1>
-    <p class="lead">Give back to the planet. Join the only student-run composting program in GUSD, keeping food waste out of the landfill, one meal at a time.</p>
-    <div class="hero-actions" id="heroActions"></div>
-    <div class="hero-stats">
-      <div class="stat"><div class="n" id="statMembers">0</div><div class="l">members</div></div>
-      <div class="stat"><div class="n">0</div><div class="l">lbs composted so far</div></div>
+  <div class="wrap">
+    <div class="hero-split">
+      <div class="hero-text reveal">
+        <span class="eyebrow">CVHS sustainability</span>
+        <h1>The future of CVHS has<br>never looked so <em>green</em>.</h1>
+        <p class="lead">Give back to the planet. Join the only student-run composting program in GUSD, keeping food waste out of the landfill, one meal at a time.</p>
+        <div class="hero-actions" id="heroActions"></div>
+        <div class="hero-stats">
+          <div class="stat"><div class="n" id="statMembers">0</div><div class="l">members</div></div>
+          <div class="stat"><div class="n" id="statLbs">0</div><div class="l">lbs composted so far</div></div>
+        </div>
+      </div>
+      <div class="hero-img reveal">
+        <img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=80" alt="Composting food scraps" />
+        <div class="hero-img-caption">Composting at CVHS</div>
+      </div>
     </div>
   </div>
 </header>
@@ -82,35 +90,33 @@
 <!-- LEARN -->
 <section class="section" id="learn">
   <div class="wrap">
-    <div class="reveal" style="max-width:640px;margin-bottom:48px">
-      <span class="eyebrow">What is composting?</span>
-      <h2>Giving back to earth, one meal at a time.</h2>
-      <p class="lead" style="margin-top:16px">Composting turns food scraps and organic waste into nutrient-rich soil instead of methane in a landfill. Here is how it works on our campus.</p>
-    </div>
-    <div class="grid-3">
-      <div class="card reveal">
-        <div class="ic">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
-        </div>
-        <span class="step-num">Step 01</span>
-        <h3>Compost your food waste at one of our stations</h3>
-        <p>Drop fruit, veggies, bread, meat, fish, and other food or plant scraps into the green compost bin at a station.</p>
+    <div class="learn-split">
+      <div class="learn-img reveal">
+        <img src="https://images.unsplash.com/photo-1585399000684-d2f72660f092?w=600&q=80" alt="Food scraps in compost bin" />
       </div>
-      <div class="card reveal">
-        <div class="ic">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <div class="learn-content">
+        <div class="reveal">
+          <span class="eyebrow">What is composting?</span>
+          <h2>Giving back to earth, one meal at a time.</h2>
+          <p class="lead" style="margin-top:16px">Composting turns food scraps and organic waste into nutrient-rich soil instead of methane in a landfill. Here is how it works on our campus.</p>
         </div>
-        <span class="step-num">Step 02</span>
-        <h3>The compost leaves campus</h3>
-        <p>The compost leaves school and is transported to a composting facility where it is broken down into nutrient-rich soil.</p>
-      </div>
-      <div class="card reveal">
-        <div class="ic">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22V12"/><path d="M12 12C12 7 8 4 4 4c0 5 4 8 8 8Z"/><path d="M12 12c0-4 4-7 8-7 0 4-4 7-8 7Z"/></svg>
+        <div class="steps">
+          <div class="step reveal">
+            <span class="step-num">Step 01</span>
+            <h3>Compost your food waste at one of our stations</h3>
+            <p>Drop fruit, veggies, bread, meat, fish, and other food or plant scraps into the green compost bin at a station.</p>
+          </div>
+          <div class="step reveal">
+            <span class="step-num">Step 02</span>
+            <h3>The compost leaves campus</h3>
+            <p>The compost leaves school and is transported to a composting facility where it is broken down into nutrient-rich soil.</p>
+          </div>
+          <div class="step reveal">
+            <span class="step-num">Step 03</span>
+            <h3>A fresh start</h3>
+            <p>Finished compost feeds farms and helps grow new food to wind up back at our cafeterias.</p>
+          </div>
         </div>
-        <span class="step-num">Step 03</span>
-        <h3>A fresh start</h3>
-        <p>Finished compost feeds farms and helps grow new food to wind up back at our cafeterias.</p>
       </div>
     </div>
   </div>
@@ -170,6 +176,10 @@
         <span class="eyebrow" style="color:var(--leaf)">Go Green incentive</span>
         <h2 style="max-width:520px">Compost every day.<br>Win a gift card.</h2>
         <p class="lead" style="margin-top:16px;max-width:52ch">Each month, the top composter on the leaderboard wins a gift card of their choice. Log your contributions through your account and redeem below when you win.</p>
+        <div class="incentive-img-row">
+          <img src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=300&q=80" alt="Composting" />
+          <img src="https://images.unsplash.com/photo-1516117172878-fd2c41f4a759?w=300&q=80" alt="Food waste composting" />
+        </div>
         <div class="gift-cards">
           <button class="gift-btn" onclick="openGiftModal('starbucks')">
             <img src="starbucks.jpg" alt="Starbucks" />
@@ -196,6 +206,14 @@
     <div class="board reveal" id="board"></div>
   </div>
 </section>
+
+<!-- PHOTO BREAK -->
+<div class="photo-break">
+  <img src="https://images.unsplash.com/photo-1563514227147-6d2af8973bfb?w=1200&q=80" alt="Sustainable campus" />
+  <div class="photo-break-overlay">
+    <p>"The best time to start composting was yesterday. The second best time is today."</p>
+  </div>
+</div>
 
 <!-- VOLUNTEER -->
 <section class="section" id="volunteer">
