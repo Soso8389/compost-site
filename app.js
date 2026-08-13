@@ -35,9 +35,12 @@ async function initFirebase() {
     db = firebase.firestore();
     await firebase.auth().signInAnonymously();
     db.collection('users').onSnapshot(snap => {
-      snap.forEach(doc => { state.users[doc.id] = doc.data(); });
+      const next = {};
+      snap.forEach(doc => { next[doc.id] = doc.data(); });
+      state.users = next;
       state.ready = true;
       renderBoard();
+      renderStats();
     }, err => console.error('Firestore error:', err));
   } catch (e) {
     console.error('Firebase failed to connect:', e);
