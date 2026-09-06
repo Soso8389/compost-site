@@ -220,6 +220,7 @@ async function postAnnouncement() {
     // send SMS if checked
     if (sendSMS) {
       const phones = Object.values(state.users)
+        .filter(u => !u.smsOptOut)
         .map(u => u.phone)
         .filter(Boolean);
       if (phones.length) {
@@ -413,7 +414,7 @@ function renderMembers() {
   el.innerHTML = sorted.map(u => `
     <div class="admin-row">
       <div>
-        <div class="ar-title">${u.name}</div>
+        <div class="ar-title">${u.name} ${u.smsOptOut ? '<span class="badge-sm tan">No SMS</span>' : ''}</div>
         <div class="ar-meta">
           ${u.phone}
           · Joined ${new Date(u.joinedAt || 0).toLocaleDateString()}
@@ -423,9 +424,21 @@ function renderMembers() {
       </div>
       <div class="ar-actions">
         <span class="badge-sm ${(u.contributions||[]).length > 0 ? 'green' : 'tan'}">${(u.contributions||[]).length} contributions</span>
+        <button class="btn btn-ghost btn-sm" onclick="toggleSMS('${u.phone}', ${!!u.smsOptOut})">${u.smsOptOut ? 'Enable SMS' : 'Opt out SMS'}</button>
         <button class="btn btn-danger btn-sm" onclick="deleteMember('${u.phone}')">Remove</button>
       </div>
     </div>`).join('');
+}
+
+/* ── sms opt out ────────────────────────────────────────── */
+async function toggleSMS(phone, currentlyOptedOut) {
+  const u = state.users[phone]; if (!u) return;
+  u.smsOptOut = !currentlyOptedOut;
+  try {
+    await db.collection('users').doc(phone).update({ smsOptOut: u.smsOptOut });
+    toast(u.name + (u.smsOptOut ? ' opted out of SMS.' : ' will receive SMS.'), 'ok');
+    renderMembers();
+  } catch(e) { toast('Failed to update.', 'bad'); }
 }
 
 /* ── delete member ─────────────────────────────────────── */
