@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Join CVHS Can Compost — Club Expo</title>
+  <meta name="description" content="Join the CVHS composting club at Club Expo." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { background: var(--beige); }
+
+    .expo-hero {
+      padding: 120px 0 56px;
+      text-align: center;
+      background:
+        radial-gradient(60% 50% at 50% 0%, rgba(143,174,125,.22), transparent 70%),
+        radial-gradient(40% 60% at 50% 100%, rgba(203,184,154,.18), transparent 70%);
+    }
+    .expo-hero .eyebrow { justify-content: center; }
+    .expo-hero h1 {
+      font-size: clamp(2.6rem, 6vw, 4.2rem);
+      font-family: var(--display);
+      font-weight: 500;
+      color: var(--green-deep);
+      line-height: 1.08;
+      margin: 14px 0 20px;
+    }
+    .expo-hero h1 em { font-style: italic; color: var(--moss); }
+    .expo-hero .lead { margin: 0 auto; }
+
+    .reasons {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 56px 0;
+    }
+    .reason {
+      background: var(--cream);
+      border: 1px solid var(--tan-soft);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      display: flex;
+      align-items: flex-start;
+      gap: 28px;
+      transition: transform .3s var(--ease), box-shadow .3s var(--ease), border-color .3s;
+    }
+    .reason:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); border-color: var(--leaf); }
+    .reason .r-num {
+      font-family: var(--display);
+      font-size: 2.6rem;
+      font-weight: 600;
+      color: var(--leaf-soft);
+      line-height: 1;
+      flex: 0 0 auto;
+      min-width: 48px;
+    }
+    .reason h3 { font-size: 1.12rem; margin-bottom: 8px; }
+    .reason p  { color: var(--muted); font-size: .94rem; line-height: 1.6; }
+    .reason .r-text { flex: 1; }
+
+    .signup-wrap {
+      max-width: 520px;
+      margin: 0 auto 96px;
+    }
+    .signup-card {
+      background: var(--green-deep);
+      border-radius: 24px;
+      padding: 40px;
+      color: #eef3e6;
+    }
+    .signup-card h2 {
+      font-family: var(--display);
+      font-size: 1.9rem;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .signup-card p {
+      color: #c5d2b8;
+      font-size: .92rem;
+      margin-bottom: 24px;
+    }
+    .signup-card .field label { color: #c5d2b8; }
+    .signup-card .field input {
+      background: rgba(255,255,255,.1);
+      border-color: rgba(207,221,191,.3);
+      color: #fff;
+    }
+    .signup-card .field input::placeholder { color: rgba(255,255,255,.4); }
+    .signup-card .field input:focus {
+      border-color: var(--leaf);
+      box-shadow: 0 0 0 3px rgba(143,174,125,.25);
+      background: rgba(255,255,255,.15);
+    }
+    .signup-card .btn-primary {
+      background: var(--leaf-soft);
+      color: var(--green-deep);
+      width: 100%;
+      font-size: 1rem;
+      padding: 15px;
+      margin-top: 4px;
+    }
+    .signup-card .btn-primary:hover { background: var(--leaf); }
+
+    .success-flash {
+      display: none;
+      text-align: center;
+      padding: 28px;
+    }
+    .success-flash .check {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--leaf-soft);
+      color: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .success-flash h3 {
+      font-family: var(--display);
+      font-size: 1.6rem;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .success-flash p { color: #c5d2b8; font-size: .92rem; }
+
+    @media (max-width: 860px) {
+      .reasons { grid-template-columns: 1fr; }
+      .signup-card { padding: 28px 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- MARQUEE -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>Welcome to Club Expo</span>
+    <span>Join the CVHS composting crew</span>
+    <span>Win gift cards just for composting</span>
+    <span>Earn community service hours</span>
+    <span>The future of CVHS has never looked so green</span>
+    <span>Welcome to Club Expo</span>
+    <span>Join the CVHS composting crew</span>
+    <span>Win gift cards just for composting</span>
+    <span>Earn community service hours</span>
+    <span>The future of CVHS has never looked so green</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <a href="index.html" class="brand">
+    <span class="logo-badge">CV</span>
+    CVHS Can Compost
+  </a>
+  <div class="nav-links">
+    <a href="index.html#learn">Learn</a>
+    <a href="index.html#sort">Sort</a>
+    <a href="index.html#gogreen">Win</a>
+    <a href="index.html#volunteer">Volunteer</a>
+  </div>
+  <div class="nav-cta" id="navCta">
+    <a href="index.html" class="btn btn-ghost" style="padding:9px 18px">Main site</a>
+  </div>
+  <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html#learn" onclick="closeMenu()">Learn</a>
+  <a href="index.html#sort" onclick="closeMenu()">Sort</a>
+  <a href="index.html#gogreen" onclick="closeMenu()">Win a gift card</a>
+  <a href="index.html#volunteer" onclick="closeMenu()">Volunteer</a>
+  <div class="m-divider"></div>
+  <a href="index.html" onclick="closeMenu()">Main site</a>
+</div>
+
+<!-- HERO -->
+<div class="expo-hero">
+  <div class="wrap">
+    <span class="eyebrow">Club Expo 2026</span>
+    <h1>Give back. Win big.<br>Look <em>great</em> doing it.</h1>
+    <p class="lead">CVHS Can Compost is the only student-run composting program in GUSD. Here is why you should be part of it.</p>
+  </div>
+</div>
+
+<!-- REASONS -->
+<div class="wrap">
+  <div class="reasons">
+
+    <div class="reason reveal">
+      <div class="r-num">01</div>
+      <div class="r-text">
+      <h3>Win a gift card every month</h3>
+      <p>The top composter on the leaderboard wins a Starbucks or Ohoo gift card at the end of every month. All you have to do is compost your lunch and log it through your account.</p>
+      </div>
+    </div>
+
+    <div class="reason reveal">
+      <div class="r-num">02</div>
+      <div class="r-text">
+      <h3>Earn real service hours</h3>
+      <p>Volunteer at the compost station during lunch and every shift counts toward your community service requirement. Help your peers sort their trays and make a difference at the same time.</p>
+      </div>
+    </div>
+
+    <div class="reason reveal">
+      <div class="r-num">03</div>
+      <div class="r-text">
+      <h3>It looks great on college apps</h3>
+      <p>Environmental leadership, community initiative, measurable impact — colleges love to see students who went beyond the classroom. Running a campus composting program checks all those boxes.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SIGN UP -->
+  <div class="signup-wrap">
+    <div class="signup-card">
+
+      <div id="formWrap">
+        <h2>Sign up right now.</h2>
+        <p>Takes 10 seconds. We will handle the rest.</p>
+        <form id="expoForm">
+          <div class="field">
+            <label>Name <span class="req">*</span></label>
+            <input type="text" id="expoName" required placeholder="Your name" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label>Phone number <span class="req">*</span></label>
+            <input type="tel" id="expoPhone" required placeholder="(818) 123-4567" autocomplete="off" />
+          </div>
+          <button type="submit" class="btn btn-primary">Join the club</button>
+        </form>
+      </div>
+
+      <div class="success-flash" id="successFlash">
+        <div class="check">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <h3 id="successName">You're in!</h3>
+        <p>Sign up recorded. Welcome to the crew.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="brand" style="margin-bottom:14px">
+          <span class="logo-badge alt">CV</span>
+          CVHS Can Compost
+        </div>
+        <p style="font-size:.92rem;max-width:34ch;color:#c5d2b8">Keeping food waste out of the landfill, one lunch at a time.</p>
+      </div>
+      <div>
+        <h5>Explore</h5>
+        <a href="index.html#learn">What is composting</a>
+        <a href="index.html#sort">Sorting guide</a>
+        <a href="index.html#gogreen">Go Green incentive</a>
+        <a href="index.html#volunteer">Volunteer</a>
+      </div>
+      <div>
+        <h5>Connect</h5>
+        <a href="mailto:cvhs.composting@gmail.com">Help and support</a>
+        <a href="index.html">Back to main site</a>
+      </div>
+    </div>
+    <div class="footer-bot">
+      <span>Made by Soren Cooper &copy; 2026</span>
+      <span>CVHS Can Compost</span>
+    </div>
+  </div>
+</footer>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script>
+const CFG = window.CONFIG || {};
+let db = null;
+
+async function init() {
+  try {
+    firebase.initializeApp(CFG.firebase);
+    db = firebase.firestore();
+    await firebase.auth().signInAnonymously();
+  } catch(e) { console.warn('Firebase:', e); }
+}
+
+document.getElementById('expoForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name  = document.getElementById('expoName').value.trim();
+  const phone = document.getElementById('expoPhone').value.replace(/\D/g,'');
+
+  if (!name)          { toast('Please enter your name.', 'bad'); return; }
+  if (phone.length < 10) { toast('Please enter a valid phone number.', 'bad'); return; }
+
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.textContent = 'Saving...';
+  btn.disabled    = true;
+
+  try {
+    if (db) {
+      // save to users collection (adds to member list + SMS blast)
+      const ref = db.collection('users').doc(phone);
+      const existing = await ref.get();
+      if (!existing.exists) {
+        await ref.set({
+          name, phone,
+          joinedAt: Date.now(),
+          points: 0,
+          contributions: [],
+          shifts: [],
+          attendance: [],
+          source: 'club-expo'
+        });
+      }
+
+      // notify admin panel
+      await db.collection('notifications').add({
+        type: 'expo-signup',
+        message: name + ' signed up at Club Expo.',
+        name, phone,
+        ts: Date.now(),
+        read: false
+      });
+    }
+
+    // show success, reset after 3 seconds
+    document.getElementById('formWrap').style.display    = 'none';
+    document.getElementById('successFlash').style.display = 'block';
+    document.getElementById('successName').textContent   = name.split(' ')[0] + ', you are in!';
+
+    setTimeout(() => {
+      document.getElementById('formWrap').style.display    = 'block';
+      document.getElementById('successFlash').style.display = 'none';
+      document.getElementById('expoName').value  = '';
+      document.getElementById('expoPhone').value = '';
+      btn.textContent = 'Join the club';
+      btn.disabled    = false;
+    }, 3000);
+
+  } catch(err) {
+    console.error(err);
+    toast('Something went wrong. Try again.', 'bad');
+    btn.textContent = 'Join the club';
+    btn.disabled    = false;
+  }
+});
+
+// nav scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// reveal
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: .12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// hamburger
+function toggleMenu() {
+  const menu = document.getElementById('mobileMenu');
+  const btn  = document.getElementById('hamburger');
+  const open = menu.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+function closeMenu() {
+  document.getElementById('mobileMenu').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// toast
+function toast(msg, kind) {
+  const w = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className   = 'toast' + (kind ? ' ' + kind : '');
+  t.textContent = msg;
+  w.appendChild(t);
+  setTimeout(() => {
+    t.style.transition = 'opacity .4s, transform .4s';
+    t.style.opacity    = '0';
+    t.style.transform  = 'translateY(10px)';
+    setTimeout(() => t.remove(), 400);
+  }, 3000);
+}
+
+init();
+</script>
+</body>
+</html>
