@@ -205,6 +205,16 @@ function showTab(name) {
   panel.classList.add('active');
   const btn = document.querySelector(`.tab-btn[onclick="showTab('${name}')"]`);
   if (btn) btn.classList.add('active');
+  // re-render the active tab content
+  const renders = {
+    announcements: renderAdminAnnouncements,
+    events:        renderAdminEvents,
+    codes:         renderCodes,
+    leaderboard:   renderLeaderboard,
+    members:       renderMembers,
+    admins:        renderAdminsList,
+  };
+  if (renders[name]) renders[name]();
 }
 
 /* ── announcements ──────────────────────────────────────── */
