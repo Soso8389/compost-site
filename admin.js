@@ -427,6 +427,7 @@ function renderMembers() {
         <div class="ar-title">${u.name} ${u.smsOptOut ? '<span class="badge-sm tan">No SMS</span>' : ''}</div>
         <div class="ar-meta">
           ${u.phone}
+          · ID: ${u.studentId || '<span style="color:#c17f24">not set</span>'}
           · Joined ${new Date(u.joinedAt || 0).toLocaleDateString()}
           · ${(u.shifts || []).length} shift${(u.shifts||[]).length === 1 ? '' : 's'}
           · ${(u.attendance || []).length} meeting${(u.attendance||[]).length === 1 ? '' : 's'} attended

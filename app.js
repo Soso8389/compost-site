@@ -219,9 +219,63 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
 });
 
 
+/* ── student ID modal ───────────────────────────────────── */
+function openIdModal() {
+  const overlay = document.getElementById('idOverlay');
+  if (!overlay) return;
+  const input = document.getElementById('studentIdInput');
+  if (input) input.value = '';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeIdModal() {
+  const overlay = document.getElementById('idOverlay');
+  if (!overlay) return;
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+function hasStudentId() {
+  const u = DB.currentUser();
+  return !!(u && u.studentId && u.studentId.length === 6);
+}
+function requireStudentId(action) {
+  if (hasStudentId()) return true;
+  openIdModal();
+  // store action to run after ID is saved
+  window._pendingIdAction = action || null;
+  return false;
+}
+
+const idFormEl = document.getElementById('idForm');
+if (idFormEl) {
+  idFormEl.addEventListener('submit', async e => {
+    e.preventDefault();
+    const val = (document.getElementById('studentIdInput').value || '').trim();
+    if (val.length !== 6 || !/^\d{6}$/.test(val)) {
+      toast('Enter a valid 6-digit student ID.', 'bad');
+      return;
+    }
+    const u = DB.currentUser();
+    if (!u) { closeIdModal(); return; }
+    u.studentId = val;
+    await DB.upsert(u);
+    closeIdModal();
+    toast('Student ID saved. All features are now unlocked.', 'ok');
+    if (typeof window._pendingIdAction === 'function') {
+      const fn = window._pendingIdAction;
+      window._pendingIdAction = null;
+      setTimeout(fn, 250);
+    }
+  });
+}
+
 /* ── gift card modal ────────────────────────────────────── */
 function openGiftModal(type) {
   const u = DB.currentUser();
+  if (u && !hasStudentId()) {
+    requireStudentId(() => openGiftModal(type));
+    return;
+  }
 
   // hide both sections first
   document.getElementById('giftForm').style.display    = 'none';

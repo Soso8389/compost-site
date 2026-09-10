@@ -171,6 +171,7 @@ function selectShift(el) {
 async function confirmShift() {
   if (!isLoggedIn()) { openAuth('Sign in to sign up for a shift.'); return; }
   if (!selectedShift) { toast('Please select a day first.', 'bad'); return; }
+  if (!requireStudentId(() => confirmShift())) return;
 
   const u = DB.currentUser();
   if (!u) { openAuth(); return; }
@@ -204,6 +205,7 @@ function renderMyShifts() {
 /* ── attendance ─────────────────────────────────────────── */
 async function submitAttendance() {
   if (!isLoggedIn()) { openAuth('Sign in to log attendance.'); return; }
+  if (!requireStudentId(() => submitAttendance())) return;
 
   const input = document.getElementById('attendanceCode');
   const code  = (input.value || '').trim().toUpperCase();
@@ -336,6 +338,7 @@ document.getElementById('signupForm').addEventListener('submit', async e => {
   }
   setSession(phone); f.reset(); closeAuth(); renderAll();
   toast(`Welcome, ${name.split(' ')[0]}.`, 'ok');
+  setTimeout(() => { if (!hasStudentId()) openIdModal(); }, 600);
 });
 
 document.getElementById('loginForm').addEventListener('submit', async e => {
@@ -346,6 +349,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
   if (!u) { toast('No account with that number. Try signing up.', 'bad'); switchTab('signup'); return; }
   setSession(phone); e.target.reset(); closeAuth(); renderAll();
   toast(`Welcome back, ${u.name.split(' ')[0]}.`, 'ok');
+  setTimeout(() => { if (!hasStudentId()) openIdModal(); }, 600);
 });
 
 /* ── nav scroll ─────────────────────────────────────────── */
@@ -366,6 +370,55 @@ function toast(msg, kind) {
     t.style.transform  = 'translateY(10px)';
     setTimeout(() => t.remove(), 400);
   }, 3000);
+}
+
+/* ── student ID ─────────────────────────────────────────── */
+function hasStudentId() {
+  const u = DB.currentUser();
+  return !!(u && u.studentId && u.studentId.length === 6);
+}
+function openIdModal() {
+  const overlay = document.getElementById('idOverlay');
+  if (!overlay) return;
+  const input = document.getElementById('studentIdInput');
+  if (input) input.value = '';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeIdModal() {
+  const overlay = document.getElementById('idOverlay');
+  if (!overlay) return;
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+function requireStudentId(action) {
+  if (hasStudentId()) return true;
+  window._pendingIdAction = action || null;
+  openIdModal();
+  return false;
+}
+
+const idFormEl = document.getElementById('idForm');
+if (idFormEl) {
+  idFormEl.addEventListener('submit', async e => {
+    e.preventDefault();
+    const val = (document.getElementById('studentIdInput').value || '').trim();
+    if (val.length !== 6 || !/^\d{6}$/.test(val)) {
+      toast('Enter a valid 6-digit student ID.', 'bad');
+      return;
+    }
+    const u = DB.currentUser();
+    if (!u) { closeIdModal(); return; }
+    u.studentId = val;
+    await DB.upsert(u);
+    closeIdModal();
+    toast('Student ID saved. All features are now unlocked.', 'ok');
+    if (typeof window._pendingIdAction === 'function') {
+      const fn = window._pendingIdAction;
+      window._pendingIdAction = null;
+      setTimeout(fn, 250);
+    }
+  });
 }
 
 /* ── scroll helper ──────────────────────────────────────── */

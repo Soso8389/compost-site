@@ -383,6 +383,26 @@
 </div>
 
 <!-- TOAST -->
+<!-- STUDENT ID MODAL -->
+<div class="overlay" id="idOverlay">
+  <div class="modal">
+    <button class="x" onclick="closeIdModal()">Close</button>
+    <div class="modal-head">
+      <span class="logo-badge" style="margin:0 auto 12px;display:flex">CV</span>
+      <h3>Add your student ID</h3>
+      <p>Your 6-digit student ID is required to volunteer, submit compost photos, and log meeting attendance. You only need to do this once.</p>
+    </div>
+    <form id="idForm">
+      <div class="field">
+        <label>Student ID <span class="req">*</span></label>
+        <input type="text" id="studentIdInput" maxlength="6" placeholder="000000" inputmode="numeric" style="letter-spacing:.2em;font-size:1.4rem;font-family:var(--display);text-align:center;font-weight:600" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Save student ID</button>
+    </form>
+    <p class="guest-link"><button onclick="closeIdModal()">Skip for now — some features will be locked</button></p>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <!-- Firebase + app -->
