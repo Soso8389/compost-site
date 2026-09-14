@@ -189,9 +189,20 @@
     <div class="reveal" style="text-align:center;max-width:560px;margin:0 auto 40px">
       <span class="eyebrow" style="justify-content:center">This month</span>
       <h2>Top composters</h2>
-      <p class="lead" style="margin:16px auto 0">The leaderboard resets monthly. Number one at the end of the month takes the gift card.</p>
+      <p class="lead" style="margin:16px auto 0">The leaderboard resets monthly. Number one for each gift card takes it home.</p>
     </div>
-    <div class="board reveal" id="board"></div>
+    <!-- leaderboard gallery -->
+    <div class="lb-gallery reveal">
+      <div class="lb-header">
+        <div class="lb-card-label" id="lbCardLabel"></div>
+        <div class="lb-nav">
+          <button class="lb-arrow" id="lbPrev" onclick="lbPrev()" aria-label="Previous">&#8592;</button>
+          <div class="lb-dots" id="lbDots"></div>
+          <button class="lb-arrow" id="lbNext" onclick="lbNext()" aria-label="Next">&#8594;</button>
+        </div>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
   </div>
 </section>
 

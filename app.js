@@ -39,9 +39,11 @@ async function initFirebase() {
       state.giftcards = [];
       snap.forEach(doc => state.giftcards.push({ id: doc.id, ...doc.data() }));
       renderGiftCardButtons();
+      renderBoard(); // re-render gallery when cards load
     }, err => {
       console.error('Gift cards error:', err);
       renderGiftCardButtons();
+      renderBoard();
     });
 
     // listen for lbs stat
@@ -361,44 +363,121 @@ const observer = new IntersectionObserver(entries => {
 }, { threshold: 0.12 });
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-/* ── leaderboard ────────────────────────────────────────── */
+/* ── leaderboard gallery ────────────────────────────────── */
 function thisMonthKey() {
   const d = new Date();
   return d.getFullYear() + '-' + d.getMonth();
 }
 
+let lbIndex    = 0;
+let lbTimer    = null;
+const LB_DELAY = 5000;
+
+function lbCardsWithData() {
+  // one slide per gift card, plus one "all" slide if multiple cards
+  const cards = state.giftcards;
+  if (!cards.length) return [{ id: 'all', name: 'All composters', image: '' }];
+  return cards;
+}
+
 function renderBoard() {
+  const cards = lbCardsWithData();
+  if (lbIndex >= cards.length) lbIndex = 0;
+
+  renderLbDots(cards);
+  renderLbSlide(cards[lbIndex]);
+
+  clearInterval(lbTimer);
+  lbTimer = setInterval(() => {
+    lbIndex = (lbIndex + 1) % cards.length;
+    renderLbDots(cards);
+    renderLbSlide(cards[lbIndex]);
+  }, LB_DELAY);
+}
+
+function lbPrev() {
+  const cards = lbCardsWithData();
+  lbIndex = (lbIndex - 1 + cards.length) % cards.length;
+  clearInterval(lbTimer);
+  renderLbDots(cards);
+  renderLbSlide(cards[lbIndex]);
+  lbTimer = setInterval(() => {
+    lbIndex = (lbIndex + 1) % cards.length;
+    renderLbDots(cards);
+    renderLbSlide(cards[lbIndex]);
+  }, LB_DELAY);
+}
+
+function lbNext() {
+  const cards = lbCardsWithData();
+  lbIndex = (lbIndex + 1) % cards.length;
+  clearInterval(lbTimer);
+  renderLbDots(cards);
+  renderLbSlide(cards[lbIndex]);
+  lbTimer = setInterval(() => {
+    lbIndex = (lbIndex + 1) % cards.length;
+    renderLbDots(cards);
+    renderLbSlide(cards[lbIndex]);
+  }, LB_DELAY);
+}
+
+function lbGoTo(i) {
+  lbIndex = i;
+  clearInterval(lbTimer);
+  const cards = lbCardsWithData();
+  renderLbDots(cards);
+  renderLbSlide(cards[lbIndex]);
+  lbTimer = setInterval(() => {
+    lbIndex = (lbIndex + 1) % cards.length;
+    renderLbDots(cards);
+    renderLbSlide(cards[lbIndex]);
+  }, LB_DELAY);
+}
+
+function renderLbDots(cards) {
+  const dots = document.getElementById('lbDots');
+  if (!dots) return;
+  dots.innerHTML = cards.map((_, i) =>
+    `<div class="lb-dot${i === lbIndex ? ' active' : ''}" onclick="lbGoTo(${i})"></div>`
+  ).join('');
+  // hide nav if only one card
+  const nav = document.getElementById('lbPrev');
+  if (nav) { nav.style.display = cards.length < 2 ? 'none' : ''; }
+  const nav2 = document.getElementById('lbNext');
+  if (nav2) { nav2.style.display = cards.length < 2 ? 'none' : ''; }
+}
+
+function renderLbSlide(gc) {
   const board = document.getElementById('board');
+  const label = document.getElementById('lbCardLabel');
   if (!board) return;
 
-  const users = Object.values(state.users);
-  if (!users.length) {
-    board.innerHTML = '<div class="empty-board">No contributions yet this month. Be the first.</div>';
-    return;
+  if (label) {
+    label.innerHTML = gc.image
+      ? `<img src="${gc.image}" alt="${gc.name}" />${gc.name} leaderboard`
+      : gc.name + ' leaderboard';
   }
 
-  // rank by points this month
-  const ranked = users
-    .map(u => ({
-      name:   u.name,
-      phone:  u.phone,
-      points: (u.contributions || [])
-                .filter(c => {
-                  const d = new Date(c.ts);
-                  return (d.getFullYear() + '-' + d.getMonth()) === thisMonthKey();
-                }).length
-    }))
-    .filter(u => u.points > 0)
-    .sort((a, b) => b.points - a.points);
+  const session  = getSession();
+  const users    = Object.values(state.users);
+
+  // filter contributions for this card and this month
+  const ranked = users.map(u => {
+    const pts = (u.contributions || []).filter(c => {
+      const inMonth = (new Date(c.ts).getFullYear() + '-' + new Date(c.ts).getMonth()) === thisMonthKey();
+      if (gc.id === 'all') return inMonth && c.approved;
+      return inMonth && c.approved && c.cardId === gc.id;
+    }).length;
+    return { name: u.name, phone: u.phone, points: pts };
+  }).filter(u => u.points > 0).sort((a, b) => b.points - a.points);
 
   if (!ranked.length) {
-    board.innerHTML = '<div class="empty-board">No approved contributions yet this month. Be the first.</div>';
+    board.innerHTML = `<div class="empty-board">No entries for ${gc.name} yet this month. Be the first.</div>`;
     return;
   }
 
-  const session = getSession();
   board.innerHTML = ranked.slice(0, 10).map((u, i) => {
-    const isYou = u.phone === session;
+    const isYou   = u.phone === session;
     const isFirst = i === 0;
     return `<div class="board-row${isFirst ? ' lead-row' : ''}">
       <div class="rank">${i + 1}</div>
