@@ -66,14 +66,22 @@
         return;
       }
 
-      const user = doc.data();
-      const newPoints = (user.points || 0) + 1;
-      const newContrib = (user.contributions || []).concat([{ ts: Date.now(), approved: true }]);
+      const user    = doc.data();
+      const cardName = params.get('card')   || '';
+      const cardId   = params.get('cardId') || '';
+      const newPoints  = (user.points || 0) + 1;
+      const newContrib = (user.contributions || []).concat([{
+        ts:       Date.now(),
+        approved: true,
+        cardName,
+        cardId,
+        hash:     Math.random().toString(36).slice(2)
+      }]);
 
       await ref.update({ points: newPoints, contributions: newContrib });
 
       document.getElementById('title').textContent = 'Approved.';
-      document.getElementById('msg').textContent   = '1 point added to ' + user.name + '. They now have ' + newPoints + ' point' + (newPoints === 1 ? '' : 's') + '.';
+      document.getElementById('msg').textContent   = '1 point added to ' + user.name + ' for ' + (cardName || 'their entry') + '. They now have ' + newPoints + ' point' + (newPoints === 1 ? '' : 's') + '.';
       document.getElementById('backBtn').style.display = 'inline-flex';
 
     } catch (e) {

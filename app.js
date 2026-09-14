@@ -501,12 +501,16 @@ function renderLbSlide(gc) {
 
   // filter contributions for this card and this month
   const ranked = users.map(u => {
-    const pts = (u.contributions || []).filter(c => {
+    const contribs = (u.contributions || []).filter(c => {
       const inMonth = (new Date(c.ts).getFullYear() + '-' + new Date(c.ts).getMonth()) === thisMonthKey();
       if (gc.id === 'all') return inMonth && c.approved;
       return inMonth && c.approved && c.cardId === gc.id;
-    }).length;
-    return { name: u.name, phone: u.phone, points: pts };
+    });
+    // most common card for this user this month (for the "all" tag)
+    const cardCounts = {};
+    contribs.forEach(c => { if (c.cardName) cardCounts[c.cardName] = (cardCounts[c.cardName] || 0) + 1; });
+    const topCard = Object.keys(cardCounts).sort((a,b) => cardCounts[b]-cardCounts[a])[0] || '';
+    return { name: u.name, phone: u.phone, points: contribs.length, cardName: topCard };
   }).filter(u => u.points > 0).sort((a, b) => b.points - a.points);
 
   if (!ranked.length) {
@@ -517,13 +521,18 @@ function renderLbSlide(gc) {
   board.innerHTML = ranked.slice(0, 10).map((u, i) => {
     const isYou   = u.phone === session;
     const isFirst = i === 0;
-    return `<div class="board-row${isFirst ? ' lead-row' : ''}">
-      <div class="rank">${i + 1}</div>
-      <div>
-        <div class="who">${u.name}${isYou ? ' <span class="you-tag">you</span>' : ''}${isFirst ? ' <span class="lead-tag">Leading</span>' : ''}</div>
-      </div>
-      <div class="count">${u.points} pt${u.points === 1 ? '' : 's'}</div>
-    </div>`;
+    // show card tag on "all" slide
+    const cardTag = gc.id === 'all' && u.cardName
+      ? '<span class="card-tag">' + u.cardName + '</span>' : '';
+    return '<div class="board-row' + (isFirst ? ' lead-row' : '') + '">' +
+      '<div class="rank">' + (i + 1) + '</div>' +
+      '<div><div class="who">' + u.name +
+        (isYou   ? ' <span class="you-tag">you</span>'       : '') +
+        (isFirst ? ' <span class="lead-tag">Leading</span>'  : '') +
+        cardTag +
+      '</div></div>' +
+      '<div class="count">' + u.points + ' pt' + (u.points === 1 ? '' : 's') + '</div>' +
+      '</div>';
   }).join('');
 }
 

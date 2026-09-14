@@ -488,3 +488,10 @@ h4  { font-size: .98rem; font-weight: 700; color: var(--green-deep); margin-bott
 .gc-pick-btn:hover    { border-color: var(--moss); background: var(--cream); }
 .gc-pick-btn.selected { border-color: var(--moss); background: var(--leaf-soft); color: var(--green-deep); }
 .gc-pick-btn img { width: 44px; height: 34px; object-fit: cover; border-radius: 6px; background: var(--tan-soft); flex: 0 0 auto; }
+
+/* ── card tag on leaderboard ────────────────────────────── */
+.card-tag {
+  font-size: .72rem; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 100px;
+  background: var(--tan-soft); color: var(--green); margin-left: 4px;
+}
