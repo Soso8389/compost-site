@@ -108,6 +108,7 @@
       <button class="tab-btn" onclick="showTab('codes')">Attendance codes</button>
       <button class="tab-btn" onclick="showTab('leaderboard')">Leaderboard</button>
       <button class="tab-btn" onclick="showTab('members')">Members</button>
+      <button class="tab-btn" onclick="showTab('giftcards')">Gift Cards</button>
       <button class="tab-btn" onclick="showTab('stats')" id="tabStats">Stats</button>
       <button class="tab-btn" onclick="showTab('admins')" id="tabAdmins">Admins</button>
     </div>
@@ -207,6 +208,26 @@
       </div>
     </div>
 
+    <!-- GIFT CARDS TAB -->
+    <div class="tab-panel" id="tab-giftcards">
+      <div class="admin-section">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="6" width="22" height="12" rx="2"/><path d="M1 10h22"/></svg>
+          Add a gift card
+        </h2>
+        <div class="admin-card">
+          <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Add a gift card that members can compete for. The image filename should match a file in your project folder (e.g. starbucks.jpg).</p>
+          <div class="field"><label>Name <span class="req">*</span></label><input type="text" id="gcName" placeholder="e.g. Starbucks" /></div>
+          <div class="field"><label>Image filename</label><input type="text" id="gcImage" placeholder="e.g. starbucks.jpg" /></div>
+          <button class="btn btn-primary" onclick="addGiftCard()">Add gift card</button>
+        </div>
+      </div>
+      <div class="admin-section">
+        <h2>Active gift cards</h2>
+        <div id="adminGiftCardsList"><p class="empty-admin">No gift cards yet.</p></div>
+      </div>
+    </div>
+
     <!-- STATS TAB -->
     <div class="tab-panel" id="tab-stats">
       <div class="admin-section">
@@ -246,6 +267,7 @@
             <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="codes" style="width:auto;margin:0" /> Attendance codes</label>
             <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="leaderboard" style="width:auto;margin:0" /> Leaderboard</label>
             <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="members" style="width:auto;margin:0" /> Members</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="giftcards" style="width:auto;margin:0" /> Gift Cards</label>
             <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="stats" style="width:auto;margin:0" /> Stats</label>
           </div>
           <button class="btn btn-primary" onclick="addSecondaryAdmin()">Add admin</button>

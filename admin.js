@@ -9,7 +9,7 @@ const ADMIN_PHONE  = (CFG.adminPhone || '8182793907').replace(/\D/g, '');
 const SMS_URL      = 'https://compost-site.vercel.app/api/send-sms';
 
 let db = null;
-const state = { users: {}, events: [], codes: {}, announcements: [], admins: {}, lbs: 0, authed: false, isSuper: false, permissions: [] };
+const state = { users: {}, events: [], codes: {}, announcements: [], admins: {}, giftcards: [], lbs: 0, authed: false, isSuper: false, permissions: [] };
 
 /* ── crypto helpers ─────────────────────────────────────── */
 async function sha256(str) {
@@ -133,7 +133,7 @@ function enterAdmin(phone, isSuper, permissions) {
 function applyPermissions() {
   if (state.isSuper) return; // super admin sees everything
   const allowed = state.permissions;
-  const allTabs = ['announcements','events','codes','leaderboard','members','stats','admins'];
+  const allTabs = ['announcements','events','codes','leaderboard','members','giftcards','stats','admins'];
   allTabs.forEach(tab => {
     const btn   = document.querySelector(`.tab-btn[onclick="showTab('${tab}')"]`);
     const panel = document.getElementById('tab-' + tab);
@@ -182,6 +182,12 @@ function startListeners() {
     renderAdminAnnouncements();
   });
 
+  db.collection('giftcards').orderBy('addedAt').onSnapshot(snap => {
+    state.giftcards = [];
+    snap.forEach(doc => state.giftcards.push({ id: doc.id, ...doc.data() }));
+    renderAdminGiftCards();
+  });
+
   db.collection('admin').doc('secondary').onSnapshot(doc => {
     state.admins = doc.exists ? (doc.data().admins || {}) : {};
     renderAdminsList();
@@ -212,6 +218,7 @@ function showTab(name) {
     codes:         renderCodes,
     leaderboard:   renderLeaderboard,
     members:       renderMembers,
+    giftcards:     renderAdminGiftCards,
     admins:        renderAdminsList,
   };
   if (renders[name]) renders[name]();
@@ -462,6 +469,49 @@ async function deleteMember(phone) {
     renderMembers();
     renderLeaderboard();
   } catch (e) { toast('Failed to delete.', 'bad'); console.error(e); }
+}
+
+/* ── gift cards ─────────────────────────────────────────── */
+async function addGiftCard() {
+  const name  = document.getElementById('gcName').value.trim();
+  const image = document.getElementById('gcImage').value.trim();
+  if (!name) { toast('Name is required.', 'bad'); return; }
+  try {
+    await db.collection('giftcards').add({ name, image: image || '', addedAt: Date.now(), active: true });
+    document.getElementById('gcName').value  = '';
+    document.getElementById('gcImage').value = '';
+    toast(name + ' gift card added.', 'ok');
+  } catch(e) { toast('Failed to add.', 'bad'); console.error(e); }
+}
+
+async function removeGiftCard(id, name) {
+  if (!confirm('Remove the ' + name + ' gift card? Members will no longer be able to enter for it.')) return;
+  try {
+    await db.collection('giftcards').doc(id).delete();
+    toast(name + ' removed.', 'ok');
+  } catch(e) { toast('Failed to remove.', 'bad'); }
+}
+
+function renderAdminGiftCards() {
+  const el = document.getElementById('adminGiftCardsList');
+  if (!el) return;
+  if (!state.giftcards.length) {
+    el.innerHTML = '<p class="empty-admin">No gift cards yet. Add one above.</p>';
+    return;
+  }
+  el.innerHTML = state.giftcards.map(gc => `
+    <div class="admin-row">
+      <div style="display:flex;align-items:center;gap:14px">
+        ${gc.image ? `<img src="${gc.image}" alt="${gc.name}" style="width:48px;height:36px;object-fit:cover;border-radius:6px;background:var(--tan-soft)" />` : ''}
+        <div>
+          <div class="ar-title">${gc.name}</div>
+          <div class="ar-meta">${gc.image || 'No image set'}</div>
+        </div>
+      </div>
+      <div class="ar-actions">
+        <button class="btn btn-danger btn-sm" onclick="removeGiftCard('${gc.id}', '${gc.name}')">Remove</button>
+      </div>
+    </div>`).join('');
 }
 
 /* ── lbs stat ───────────────────────────────────────────── */
