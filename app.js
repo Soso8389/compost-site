@@ -12,7 +12,7 @@ const USE_FIRESTORE = !!(FB.apiKey && FB.projectId);
 let db = null;
 
 /* ── state ──────────────────────────────────────────────── */
-const state = { users: {}, lbs: 0, ready: false };
+const state = { users: {}, giftcards: [], lbs: 0, ready: false };
 
 /* ── helpers ────────────────────────────────────────────── */
 function normPhone(p)   { return (p || '').replace(/\D/g, ''); }
@@ -34,6 +34,13 @@ async function initFirebase() {
     firebase.initializeApp(FB);
     db = firebase.firestore();
     await firebase.auth().signInAnonymously();
+    // gift cards
+    db.collection('giftcards').orderBy('addedAt').onSnapshot(snap => {
+      state.giftcards = [];
+      snap.forEach(doc => state.giftcards.push({ id: doc.id, ...doc.data() }));
+      renderGiftCardButtons();
+    });
+
     // listen for lbs stat
     db.collection('system').doc('stats').onSnapshot(doc => {
       if (doc.exists) { state.lbs = doc.data().lbs || 0; renderStats(); }
@@ -269,22 +276,40 @@ if (idFormEl) {
   });
 }
 
-/* ── gift card modal ────────────────────────────────────── */
-function openGiftModal(type) {
-  const u = DB.currentUser();
-  if (u && !hasStudentId()) {
-    requireStudentId(() => openGiftModal(type));
+/* ── gift card buttons ──────────────────────────────────── */
+function renderGiftCardButtons() {
+  const el = document.getElementById('giftCardButtons');
+  if (!el) return;
+  if (!state.giftcards.length) {
+    el.innerHTML = '<p style="color:#9fb091;font-size:.9rem">No gift cards available right now.</p>';
     return;
   }
+  el.innerHTML = state.giftcards.map(gc => `
+    <button class="gift-btn" onclick="openGiftModal('${gc.id}')">
+      ${gc.image ? `<img src="${gc.image}" alt="${gc.name}" />` : ''}
+      Claim ${gc.name} gift card
+    </button>`).join('');
+}
+
+/* ── gift card modal ────────────────────────────────────── */
+function openGiftModal(cardId) {
+  const u  = DB.currentUser();
+  if (u && !hasStudentId()) {
+    requireStudentId(() => openGiftModal(cardId));
+    return;
+  }
+
+  // look up card from state
+  const gc = state.giftcards.find(c => c.id === cardId) || { id: cardId, name: cardId, image: '' };
 
   // hide both sections first
   document.getElementById('giftForm').style.display    = 'none';
   document.getElementById('giftGuestMsg').style.display = 'none';
 
-  const isStarbucks = type === 'starbucks';
-  document.getElementById('giftModalImg').src         = isStarbucks ? 'starbucks.jpg' : 'ohoo.jpg';
-  document.getElementById('giftModalImg').alt         = isStarbucks ? 'Starbucks' : 'Ohoo';
-  document.getElementById('giftModalTitle').textContent = 'Claim your ' + (isStarbucks ? 'Starbucks' : 'Ohoo') + ' gift card';
+  document.getElementById('giftModalImg').src           = gc.image || '';
+  document.getElementById('giftModalImg').alt           = gc.name;
+  document.getElementById('giftModalImg').style.display = gc.image ? 'block' : 'none';
+  document.getElementById('giftModalTitle').textContent = 'Claim your ' + gc.name + ' gift card';
 
   if (!u) {
     document.getElementById('giftModalSub').textContent = 'You need an account to claim a gift card.';
