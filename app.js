@@ -321,15 +321,13 @@ function openGiftModal(cardId) {
     document.getElementById('giftModalSub').textContent = 'Upload a photo of your compost contribution to submit your claim.';
     document.getElementById('giftForm').style.display    = 'block';
 
-    // pre-fill hidden fields
-    document.getElementById('giftCardType').value    = isStarbucks ? 'Starbucks' : 'Ohoo';
+    document.getElementById('giftCardType').value    = gc.name;
     document.getElementById('giftMemberName').value  = u.name;
     document.getElementById('giftMemberPhone').value = u.phone;
-    document.getElementById('giftSubject').value     = 'Gift Card Claim (' + (isStarbucks ? 'Starbucks' : 'Ohoo') + ') — ' + u.name;
+    document.getElementById('giftSubject').value     = 'Gift Card Claim (' + gc.name + ') — ' + u.name;
 
-    // approval links — point back to your site
     const base = window.location.origin + window.location.pathname.replace('index.html', '');
-    document.getElementById('giftApproveUrl').value = base + 'approve.html?phone=' + u.phone;
+    document.getElementById('giftApproveUrl').value = base + 'approve.html?phone=' + u.phone + '&card=' + encodeURIComponent(gc.name);
     document.getElementById('giftDenyUrl').value    = base + 'deny.html';
   }
 
