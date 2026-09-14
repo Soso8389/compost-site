@@ -39,6 +39,9 @@ async function initFirebase() {
       state.giftcards = [];
       snap.forEach(doc => state.giftcards.push({ id: doc.id, ...doc.data() }));
       renderGiftCardButtons();
+    }, err => {
+      console.error('Gift cards error:', err);
+      renderGiftCardButtons();
     });
 
     // listen for lbs stat
