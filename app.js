@@ -289,21 +289,20 @@ function renderGiftCardButtons() {
     el.innerHTML = '<p style="color:#9fb091;font-size:.9rem">No gift cards available right now.</p>';
     return;
   }
-  // single button opens the picker modal
-  el.innerHTML = state.giftcards.map(gc =>
-    '<button class="gift-btn" onclick="openGiftModal()">' +
-    (gc.image ? '<img src="' + gc.image + '" alt="' + gc.name + '" />' : '') +
-    'Claim ' + gc.name + ' gift card</button>'
-  ).join('');
+  el.innerHTML = state.giftcards.map(function(gc) {
+    return '<button class="gift-btn" data-cardid="' + gc.id + '" onclick="openGiftModal(this.dataset.cardid)">' +
+      (gc.image ? '<img src="' + gc.image + '" alt="' + gc.name + '" />' : '') +
+      'Claim ' + gc.name + ' gift card</button>';
+  }).join('');
 }
 
 /* ── gift card modal ────────────────────────────────────── */
 let selectedGiftCard = null;
 
-function openGiftModal() {
+function openGiftModal(preselectedId) {
   const u = DB.currentUser();
   if (u && !hasStudentId()) {
-    requireStudentId(() => openGiftModal());
+    requireStudentId(() => openGiftModal(preselectedId));
     return;
   }
 
@@ -331,6 +330,11 @@ function openGiftModal() {
   } else {
     if (loggedIn) loggedIn.style.display = 'block';
     if (guest)    guest.style.display    = 'none';
+    // preselect card and skip to step 2 if a card was clicked
+    if (preselectedId) {
+      selectGiftCard(preselectedId);
+      giftConfirmCard();
+    }
   }
 
   document.getElementById('giftOverlay').classList.add('open');
