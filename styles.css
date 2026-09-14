@@ -475,3 +475,16 @@ h4  { font-size: .98rem; font-weight: 700; color: var(--green-deep); margin-bott
   transition: background .25s, transform .25s;
 }
 .lb-dot.active { background: var(--moss); transform: scale(1.25); }
+
+/* ── gift card picker ───────────────────────────────────── */
+.gc-pick-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--tan-soft); cursor: pointer;
+  background: #fff; font-family: var(--body); font-size: .96rem;
+  font-weight: 600; color: var(--green); text-align: left;
+  transition: border-color .2s, background .2s;
+}
+.gc-pick-btn:hover    { border-color: var(--moss); background: var(--cream); }
+.gc-pick-btn.selected { border-color: var(--moss); background: var(--leaf-soft); color: var(--green-deep); }
+.gc-pick-btn img { width: 44px; height: 34px; object-fit: cover; border-radius: 6px; background: var(--tan-soft); flex: 0 0 auto; }

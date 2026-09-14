@@ -314,35 +314,57 @@
   <div class="modal">
     <button class="x" onclick="closeGiftModal()">Close</button>
     <div class="modal-head">
-      <img id="giftModalImg" src="" alt="" style="width:72px;height:72px;object-fit:cover;border-radius:12px;margin:0 auto 14px;display:block" />
-      <h3 id="giftModalTitle">Claim your gift card</h3>
-      <p id="giftModalSub">Upload a photo of your compost contribution to submit your claim.</p>
+      <h3>Claim a gift card</h3>
+      <p>Choose which gift card you are entering for, then upload a photo of your compost. You can enter for multiple cards separately.</p>
     </div>
-    <form id="giftForm"
-      action="https://formsubmit.co/cvhs.composting@gmail.com"
-      method="POST"
-      enctype="multipart/form-data">
-      <input type="hidden" name="_subject" id="giftSubject" value="Gift Card Claim — CVHS Can Compost" />
-      <input type="hidden" name="_captcha" value="false" />
-      <input type="hidden" name="_next" value="gift-submitted.html" />
-      <input type="hidden" name="_template" value="table" />
-      <input type="hidden" name="gift_card" id="giftCardType" value="" />
-      <input type="hidden" name="member_name" id="giftMemberName" value="" />
-      <input type="hidden" name="member_phone" id="giftMemberPhone" value="" />
-      <input type="hidden" name="approve_url" id="giftApproveUrl" value="" />
-      <input type="hidden" name="deny_url" id="giftDenyUrl" value="" />
-      <div class="field">
-        <label>Photo of your compost <span class="req">*</span></label>
-        <input type="file" name="photo" accept="image/*" required
-          style="padding:8px;cursor:pointer" />
+
+    <!-- logged in flow -->
+    <div id="giftLoggedIn" style="display:none">
+
+      <!-- step 1: pick a card -->
+      <div id="giftStep1">
+        <p style="font-size:.82rem;font-weight:600;color:var(--green);margin-bottom:12px">Which gift card are you entering for?</p>
+        <div id="giftCardPicker" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px"></div>
+        <button class="btn btn-primary btn-block" onclick="giftConfirmCard()">Continue</button>
       </div>
-      <div class="field">
-        <label>Anything to add?</label>
-        <input type="text" name="note" placeholder="Optional note" />
+
+      <!-- step 2: upload photo -->
+      <div id="giftStep2" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 14px;background:var(--leaf-soft);border-radius:var(--radius-sm)">
+          <img id="giftSelectedImg" src="" alt="" style="width:36px;height:28px;object-fit:cover;border-radius:5px;display:none" />
+          <span id="giftSelectedName" style="font-weight:600;color:var(--green-deep);font-size:.92rem"></span>
+          <button onclick="giftBackToStep1()" style="margin-left:auto;font-size:.8rem;color:var(--moss);font-weight:600;text-decoration:underline">Change</button>
+        </div>
+        <form id="giftForm"
+          action="https://formsubmit.co/cvhs.composting@gmail.com"
+          method="POST"
+          enctype="multipart/form-data">
+          <input type="hidden" name="_subject"  id="giftSubject"     value="Gift Card Claim — CVHS Can Compost" />
+          <input type="hidden" name="_captcha"  value="false" />
+          <input type="hidden" name="_next"     value="gift-submitted.html" />
+          <input type="hidden" name="_template" value="table" />
+          <input type="hidden" name="gift_card"     id="giftCardType"    value="" />
+          <input type="hidden" name="gift_card_id"  id="giftCardId"      value="" />
+          <input type="hidden" name="member_name"   id="giftMemberName"  value="" />
+          <input type="hidden" name="member_phone"  id="giftMemberPhone" value="" />
+          <input type="hidden" name="approve_url"   id="giftApproveUrl"  value="" />
+          <input type="hidden" name="deny_url"      id="giftDenyUrl"     value="" />
+          <div class="field">
+            <label>Photo of your compost <span class="req">*</span></label>
+            <input type="file" name="photo" accept="image/*" required style="padding:8px;cursor:pointer" />
+          </div>
+          <div class="field">
+            <label>Anything to add?</label>
+            <input type="text" name="note" placeholder="Optional note" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Submit claim</button>
+          <p class="form-note">We will review your photo and add a point if approved.</p>
+        </form>
       </div>
-      <button type="submit" class="btn btn-primary btn-block">Submit claim</button>
-      <p class="form-note">We will review your photo and add a point if approved.</p>
-    </form>
+
+    </div>
+
+    <!-- guest flow -->
     <div id="giftGuestMsg" style="display:none">
       <p style="color:var(--muted);font-size:.92rem;text-align:center;margin-bottom:16px">
         You need an account to claim a gift card.

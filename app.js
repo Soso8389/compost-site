@@ -289,57 +289,95 @@ function renderGiftCardButtons() {
     el.innerHTML = '<p style="color:#9fb091;font-size:.9rem">No gift cards available right now.</p>';
     return;
   }
-  el.innerHTML = state.giftcards.map(gc => `
-    <button class="gift-btn" onclick="openGiftModal('${gc.id}')">
-      ${gc.image ? `<img src="${gc.image}" alt="${gc.name}" />` : ''}
-      Claim ${gc.name} gift card
-    </button>`).join('');
+  // single button opens the picker modal
+  el.innerHTML = state.giftcards.map(gc =>
+    '<button class="gift-btn" onclick="openGiftModal()">' +
+    (gc.image ? '<img src="' + gc.image + '" alt="' + gc.name + '" />' : '') +
+    'Claim ' + gc.name + ' gift card</button>'
+  ).join('');
 }
 
 /* ── gift card modal ────────────────────────────────────── */
-function openGiftModal(cardId) {
-  const u  = DB.currentUser();
+let selectedGiftCard = null;
+
+function openGiftModal() {
+  const u = DB.currentUser();
   if (u && !hasStudentId()) {
-    requireStudentId(() => openGiftModal(cardId));
+    requireStudentId(() => openGiftModal());
     return;
   }
 
-  // look up card from state
-  const gc = state.giftcards.find(c => c.id === cardId) || { id: cardId, name: cardId, image: '' };
+  selectedGiftCard = null;
+  giftBackToStep1();
 
-  // hide both sections first
-  document.getElementById('giftForm').style.display    = 'none';
-  document.getElementById('giftGuestMsg').style.display = 'none';
+  // render card picker
+  const picker = document.getElementById('giftCardPicker');
+  if (picker) {
+    if (!state.giftcards.length) {
+      picker.innerHTML = '<p style="color:var(--muted);font-size:.92rem">No gift cards available right now.</p>';
+    } else {
+      picker.innerHTML = state.giftcards.map(function(gc) {
+        var img = gc.image ? '<img src="' + gc.image + '" alt="' + gc.name + '" />' : '';
+        return '<button class="gc-pick-btn" data-cardid="' + gc.id + '" id="gcbtn-' + gc.id + '" onclick="selectGiftCard(this.dataset.cardid)">' + img + gc.name + ' gift card</button>';
+      }).join('');
+    }
+  }
 
-  document.getElementById('giftModalImg').src           = gc.image || '';
-  document.getElementById('giftModalImg').alt           = gc.name;
-  document.getElementById('giftModalImg').style.display = gc.image ? 'block' : 'none';
-  document.getElementById('giftModalTitle').textContent = 'Claim your ' + gc.name + ' gift card';
-
+  const loggedIn = document.getElementById('giftLoggedIn');
+  const guest    = document.getElementById('giftGuestMsg');
   if (!u) {
-    document.getElementById('giftModalSub').textContent = 'You need an account to claim a gift card.';
-    document.getElementById('giftGuestMsg').style.display = 'block';
+    if (loggedIn) loggedIn.style.display = 'none';
+    if (guest)    guest.style.display    = 'block';
   } else {
-    document.getElementById('giftModalSub').textContent = 'Upload a photo of your compost contribution to submit your claim.';
-    document.getElementById('giftForm').style.display    = 'block';
-
-    document.getElementById('giftCardType').value    = gc.name;
-    document.getElementById('giftMemberName').value  = u.name;
-    document.getElementById('giftMemberPhone').value = u.phone;
-    document.getElementById('giftSubject').value     = 'Gift Card Claim (' + gc.name + ') — ' + u.name;
-
-    const base = window.location.origin + window.location.pathname.replace('index.html', '');
-    document.getElementById('giftApproveUrl').value = base + 'approve.html?phone=' + u.phone + '&card=' + encodeURIComponent(gc.name);
-    document.getElementById('giftDenyUrl').value    = base + 'deny.html';
+    if (loggedIn) loggedIn.style.display = 'block';
+    if (guest)    guest.style.display    = 'none';
   }
 
   document.getElementById('giftOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
+function selectGiftCard(cardId) {
+  selectedGiftCard = state.giftcards.find(c => c.id === cardId) || null;
+  document.querySelectorAll('.gc-pick-btn').forEach(b => b.classList.remove('selected'));
+  const btn = document.getElementById('gcbtn-' + cardId);
+  if (btn) btn.classList.add('selected');
+}
+
+function giftConfirmCard() {
+  if (!selectedGiftCard) { toast('Please select a gift card first.', 'bad'); return; }
+  const u = DB.currentUser(); if (!u) return;
+  const gc = selectedGiftCard;
+
+  document.getElementById('giftCardType').value    = gc.name;
+  document.getElementById('giftCardId').value      = gc.id;
+  document.getElementById('giftMemberName').value  = u.name;
+  document.getElementById('giftMemberPhone').value = u.phone;
+  document.getElementById('giftSubject').value     = 'Gift Card Claim (' + gc.name + ') — ' + u.name;
+  const base = window.location.origin + window.location.pathname.replace('index.html', '');
+  document.getElementById('giftApproveUrl').value  = base + 'approve.html?phone=' + u.phone + '&card=' + encodeURIComponent(gc.name) + '&cardId=' + encodeURIComponent(gc.id);
+  document.getElementById('giftDenyUrl').value     = base + 'deny.html';
+
+  const img  = document.getElementById('giftSelectedImg');
+  const name = document.getElementById('giftSelectedName');
+  if (img)  { img.src = gc.image || ''; img.style.display = gc.image ? 'block' : 'none'; }
+  if (name) name.textContent = 'Entering for: ' + gc.name;
+
+  document.getElementById('giftStep1').style.display = 'none';
+  document.getElementById('giftStep2').style.display = 'block';
+}
+
+function giftBackToStep1() {
+  const s1 = document.getElementById('giftStep1');
+  const s2 = document.getElementById('giftStep2');
+  if (s1) s1.style.display = 'block';
+  if (s2) s2.style.display = 'none';
+}
+
 function closeGiftModal() {
   document.getElementById('giftOverlay').classList.remove('open');
   document.body.style.overflow = '';
+  selectedGiftCard = null;
 }
 
 /* ── stats ──────────────────────────────────────────────── */
