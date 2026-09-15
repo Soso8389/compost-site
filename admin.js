@@ -133,7 +133,7 @@ function enterAdmin(phone, isSuper, permissions) {
 function applyPermissions() {
   if (state.isSuper) return; // super admin sees everything
   const allowed = state.permissions;
-  const allTabs = ['announcements','events','codes','leaderboard','members','giftcards','stats','admins'];
+  const allTabs = ['announcements','events','codes','leaderboard','members','giftcards','minutes','stats','admins'];
   allTabs.forEach(tab => {
     const btn   = document.querySelector(`.tab-btn[onclick="showTab('${tab}')"]`);
     const panel = document.getElementById('tab-' + tab);
@@ -220,6 +220,7 @@ function showTab(name) {
     members:       renderMembers,
     giftcards:     renderAdminGiftCards,
     admins:        renderAdminsList,
+    minutes:       function() {},
   };
   if (renders[name]) renders[name]();
 }
@@ -318,30 +319,47 @@ async function deleteEvent(id) {
 
 function renderAdminEvents() {
   const el = document.getElementById('adminEventsList');
-  const upcoming = state.events.filter(e => new Date(e.date) >= new Date());
-  if (!upcoming.length) { el.innerHTML = '<p class="empty-admin">No upcoming events.</p>'; return; }
-  el.innerHTML = upcoming.map(e => `
-    <div class="admin-row">
-      <div>
-        <div class="ar-title">${e.title}</div>
-        <div class="ar-meta">${new Date(e.date).toLocaleDateString()} ${e.start ? '· ' + e.start : ''} ${e.location ? '· ' + e.location : ''}</div>
-      </div>
-      <div class="ar-actions">
-        <button class="btn btn-danger btn-sm" onclick="deleteEvent('${e.id}')">Delete</button>
-      </div>
-    </div>`).join('');
+  const eventSel = document.getElementById('codeEvent');
+  const allEvents = state.events.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+  const upcoming = allEvents.filter(e => new Date(e.date) >= new Date());
+
+  if (!upcoming.length) { el.innerHTML = '<p class="empty-admin">No upcoming events.</p>'; }
+  else {
+    el.innerHTML = upcoming.map(e => `
+      <div class="admin-row">
+        <div>
+          <div class="ar-title">${e.title}</div>
+          <div class="ar-meta">${new Date(e.date).toLocaleDateString()} ${e.start ? '· ' + e.start : ''} ${e.location ? '· ' + e.location : ''}</div>
+        </div>
+        <div class="ar-actions">
+          <button class="btn btn-danger btn-sm" onclick="deleteEvent('${e.id}')">Delete</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // populate event selector for code creation — show ALL events (past and future)
+  if (eventSel) {
+    const prev = eventSel.value;
+    eventSel.innerHTML = '<option value="">None — fill in manually later</option>' +
+      state.events.slice()
+        .sort((a,b) => new Date(a.date) - new Date(b.date))
+        .map(e => '<option value="' + e.id + '">' + e.title + ' — ' + new Date(e.date).toLocaleDateString() + '</option>').join('');
+    if (prev) eventSel.value = prev;
+  }
 }
 
 /* ── attendance codes ───────────────────────────────────── */
 async function createCode() {
-  const val   = document.getElementById('codeVal').value.trim().toUpperCase();
-  const label = document.getElementById('codeLabel').value.trim();
+  const val     = document.getElementById('codeVal').value.trim().toUpperCase();
+  const label   = document.getElementById('codeLabel').value.trim();
+  const eventId = document.getElementById('codeEvent').value || '';
   if (!val || !label) { toast('Code and label are required.', 'bad'); return; }
   if (val.length < 4)  { toast('Code must be at least 4 characters.', 'bad'); return; }
   try {
-    await db.collection('codes').doc(val).set({ label, ts: Date.now() });
+    await db.collection('codes').doc(val).set({ label, ts: Date.now(), eventId });
     document.getElementById('codeVal').value   = '';
     document.getElementById('codeLabel').value = '';
+    document.getElementById('codeEvent').value = '';
     toast('Code created: ' + val, 'ok');
   } catch (e) { toast('Failed to create code.', 'bad'); console.error(e); }
 }
@@ -374,8 +392,8 @@ function renderCodes() {
   // populate minutes code selector
   if (sel) {
     const prev = sel.value;
-    sel.innerHTML = '<option value="" disabled>Select a code</option>' +
-      keys.map(k => `<option value="${k}">${k} — ${state.codes[k].label}</option>`).join('');
+    sel.innerHTML = '<option value="" disabled selected>Select a code</option>' +
+      keys.map(k => '<option value="' + k + '">' + k + ' — ' + state.codes[k].label + '</option>').join('');
     if (prev && keys.includes(prev)) sel.value = prev;
     else sel.selectedIndex = 0;
   }
@@ -593,10 +611,54 @@ function formatPhone(p) {
   return m.length === 10 ? '('+m.slice(0,3)+') '+m.slice(3,6)+'-'+m.slice(6) : p;
 }
 
+/* ── dynamic form items ─────────────────────────────────── */
+function addDynItem(containerId, placeholder) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  const div = document.createElement('div');
+  div.className = 'dynamic-item';
+  div.innerHTML = '<input type="text" placeholder="' + placeholder + '" />' +
+    '<button onclick="removeDynItem(this)" class="dyn-remove">✕</button>';
+  wrap.appendChild(div);
+}
+
+function removeDynItem(btn) {
+  const container = btn.closest('[id]');
+  const items = container.querySelectorAll('.dynamic-item');
+  if (items.length <= 1) { toast('At least one item is required.', 'bad'); return; }
+  btn.parentElement.remove();
+}
+
+function getDynItems(containerId) {
+  return [...document.querySelectorAll('#' + containerId + ' .dynamic-item input')]
+    .map(i => i.value.trim()).filter(Boolean);
+}
+
+function onMinutesCodeChange() {
+  const code = document.getElementById('minutesCode').value;
+  if (!code) return;
+  const codeData = state.codes[code];
+  if (!codeData || !codeData.eventId) return;
+
+  // find linked event
+  const event = state.events.find(e => e.id === codeData.eventId);
+  if (!event) return;
+
+  // auto-fill date
+  if (event.date) {
+    const d = new Date(event.date);
+    const yyyy = d.getFullYear();
+    const mm   = String(d.getMonth() + 1).padStart(2, '0');
+    const dd   = String(d.getDate()).padStart(2, '0');
+    document.getElementById('minutesDate').value = yyyy + '-' + mm + '-' + dd;
+  }
+  if (event.start)    document.getElementById('minutesTime').value      = event.start;
+  if (event.end)      document.getElementById('minutesAdjourned').value = event.end;
+  if (event.location) document.getElementById('minutesLocation').value  = event.location;
+}
+
 /* ── compile minutes ────────────────────────────────────── */
-// ADD YOUR NAME HERE (president / presiding officer / who prepared)
 const PRESIDENT_NAME = 'Soren Cooper';
-// ADD VP NAME HERE
 const VP_NAME = 'William Federanko';
 
 function compileMinutes() {
@@ -608,12 +670,8 @@ function compileMinutes() {
   const timeStart = document.getElementById('minutesTime').value.trim()      || 'N/A';
   const timeAdj   = document.getElementById('minutesAdjourned').value.trim() || 'N/A';
   const location  = document.getElementById('minutesLocation').value.trim()  || 'N/A';
-  const agenda1   = document.getElementById('minutesAgenda1').value.trim();
-  const agenda2   = document.getElementById('minutesAgenda2').value.trim();
-  const agenda3   = document.getElementById('minutesAgenda3').value.trim();
-  const action1   = document.getElementById('minutesAction1').value.trim();
-  const action2   = document.getElementById('minutesAction2').value.trim();
-  const action3   = document.getElementById('minutesAction3').value.trim();
+  const agendaItems = getDynItems('agendaItems');
+  const actionItems = getDynItems('actionItems');
   const asb       = document.getElementById('minutesASB').value.trim()    || 'Nothing to currently communicate.';
   const notes     = document.getElementById('minutesNotes').value.trim()  || 'None.';
 
@@ -705,11 +763,11 @@ function compileMinutes() {
 
   // AGENDA
   addSection('Agenda Items (Discussion Topics)');
-  addNumberedList([agenda1, agenda2, agenda3]);
+  addNumberedList(agendaItems);
 
   // ACTION ITEMS
   addSection('Action Items (Decisions Made)');
-  addNumberedList([action1, action2, action3]);
+  addNumberedList(actionItems);
 
   // COMMITTEES
   addSection('Report of Committees');
