@@ -184,6 +184,46 @@
         <h2>Active codes</h2>
         <div id="adminCodesList"><p class="empty-admin">No codes yet.</p></div>
       </div>
+
+      <div class="admin-section">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          Compile meeting minutes
+        </h2>
+        <div class="admin-card">
+          <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px">Select a meeting code to auto-fill attendees, then fill in the remaining details and compile a PDF ready to submit to ASB.</p>
+
+          <div class="field">
+            <label>Meeting code <span class="req">*</span></label>
+            <select id="minutesCode">
+              <option value="" disabled selected>Select a code</option>
+            </select>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="field"><label>Date <span class="req">*</span></label><input type="date" id="minutesDate" /></div>
+            <div class="field"><label>Time started</label><input type="text" id="minutesTime" placeholder="e.g. 3:30 PM" /></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="field"><label>Time adjourned</label><input type="text" id="minutesAdjourned" placeholder="e.g. 4:00 PM" /></div>
+            <div class="field"><label>Location</label><input type="text" id="minutesLocation" placeholder="e.g. Room 204" /></div>
+          </div>
+
+          <div class="field"><label>Agenda item 1</label><input type="text" id="minutesAgenda1" placeholder="Discussion topic" /></div>
+          <div class="field"><label>Agenda item 2</label><input type="text" id="minutesAgenda2" placeholder="Discussion topic" /></div>
+          <div class="field"><label>Agenda item 3</label><input type="text" id="minutesAgenda3" placeholder="Discussion topic" /></div>
+
+          <div class="field"><label>Action item 1</label><input type="text" id="minutesAction1" placeholder="Decision made" /></div>
+          <div class="field"><label>Action item 2</label><input type="text" id="minutesAction2" placeholder="Decision made" /></div>
+          <div class="field"><label>Action item 3</label><input type="text" id="minutesAction3" placeholder="Decision made" /></div>
+
+          <div class="field"><label>Communications with ASB</label><input type="text" id="minutesASB" placeholder="Leave blank if nothing to report" /></div>
+          <div class="field"><label>Other notes</label><input type="text" id="minutesNotes" placeholder="Any other details" /></div>
+
+          <button class="btn btn-primary" onclick="compileMinutes()">Compile minutes PDF</button>
+        </div>
+      </div>
     </div>
 
     <!-- LEADERBOARD -->
@@ -287,6 +327,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="config.js"></script>
 <script src="admin.js"></script>
 </body>

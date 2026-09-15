@@ -354,18 +354,31 @@ async function deleteCode(id) {
 
 function renderCodes() {
   const el   = document.getElementById('adminCodesList');
+  const sel  = document.getElementById('minutesCode');
   const keys = Object.keys(state.codes);
-  if (!keys.length) { el.innerHTML = '<p class="empty-admin">No active codes.</p>'; return; }
-  el.innerHTML = keys.map(k => `
-    <div class="admin-row">
-      <div>
-        <div class="ar-title" style="font-family:var(--display);letter-spacing:.1em">${k}</div>
-        <div class="ar-meta">${state.codes[k].label} · Created ${new Date(state.codes[k].ts).toLocaleDateString()}</div>
-      </div>
-      <div class="ar-actions">
-        <button class="btn btn-danger btn-sm" onclick="deleteCode('${k}')">Delete</button>
-      </div>
-    </div>`).join('');
+
+  if (!keys.length) { el.innerHTML = '<p class="empty-admin">No active codes.</p>'; }
+  else {
+    el.innerHTML = keys.map(k => `
+      <div class="admin-row">
+        <div>
+          <div class="ar-title" style="font-family:var(--display);letter-spacing:.1em">${k}</div>
+          <div class="ar-meta">${state.codes[k].label} · Created ${new Date(state.codes[k].ts).toLocaleDateString()}</div>
+        </div>
+        <div class="ar-actions">
+          <button class="btn btn-danger btn-sm" onclick="deleteCode('${k}')">Delete</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // populate minutes code selector
+  if (sel) {
+    const prev = sel.value;
+    sel.innerHTML = '<option value="" disabled>Select a code</option>' +
+      keys.map(k => `<option value="${k}">${k} — ${state.codes[k].label}</option>`).join('');
+    if (prev && keys.includes(prev)) sel.value = prev;
+    else sel.selectedIndex = 0;
+  }
 }
 
 /* ── leaderboard ────────────────────────────────────────── */
@@ -578,6 +591,150 @@ function renderAdminsList() {
 function formatPhone(p) {
   const m = (p||'').replace(/\D/g,'');
   return m.length === 10 ? '('+m.slice(0,3)+') '+m.slice(3,6)+'-'+m.slice(6) : p;
+}
+
+/* ── compile minutes ────────────────────────────────────── */
+// ADD YOUR NAME HERE (president / presiding officer / who prepared)
+const PRESIDENT_NAME = 'Soren Cooper';
+// ADD VP NAME HERE
+const VP_NAME = 'William Federanko';
+
+function compileMinutes() {
+  const code = document.getElementById('minutesCode').value;
+  if (!code) { toast('Select a meeting code first.', 'bad'); return; }
+
+  const codeData  = state.codes[code];
+  const dateVal   = document.getElementById('minutesDate').value;
+  const timeStart = document.getElementById('minutesTime').value.trim()      || 'N/A';
+  const timeAdj   = document.getElementById('minutesAdjourned').value.trim() || 'N/A';
+  const location  = document.getElementById('minutesLocation').value.trim()  || 'N/A';
+  const agenda1   = document.getElementById('minutesAgenda1').value.trim();
+  const agenda2   = document.getElementById('minutesAgenda2').value.trim();
+  const agenda3   = document.getElementById('minutesAgenda3').value.trim();
+  const action1   = document.getElementById('minutesAction1').value.trim();
+  const action2   = document.getElementById('minutesAction2').value.trim();
+  const action3   = document.getElementById('minutesAction3').value.trim();
+  const asb       = document.getElementById('minutesASB').value.trim()    || 'Nothing to currently communicate.';
+  const notes     = document.getElementById('minutesNotes').value.trim()  || 'None.';
+
+  if (!dateVal) { toast('Please enter the meeting date.', 'bad'); return; }
+
+  const dateStr = new Date(dateVal + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // get attendees who used this code
+  const attendees = Object.values(state.users).filter(u =>
+    (u.attendance || []).some(a => a.code === code)
+  ).map(u => u.name + (u.studentId ? ' (ID: ' + u.studentId + ')' : '')).sort();
+
+  // build PDF using jsPDF
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+
+  const margin = 72;
+  const pageW  = doc.internal.pageSize.getWidth();
+  const pageH  = doc.internal.pageSize.getHeight();
+  let y = margin;
+
+  function addLine(text, opts) {
+    opts = opts || {};
+    const size   = opts.size   || 11;
+    const bold   = opts.bold   || false;
+    const indent = opts.indent || 0;
+    doc.setFontSize(size);
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    const lines = doc.splitTextToSize(text, pageW - margin * 2 - indent);
+    lines.forEach(function(line) {
+      if (y > pageH - margin) { doc.addPage(); y = margin; }
+      doc.text(line, margin + indent, y);
+      y += size * 1.5;
+    });
+    y += opts.after || 0;
+  }
+
+  function addSection(title) {
+    y += 6;
+    doc.setDrawColor(180, 180, 180);
+    doc.line(margin, y, pageW - margin, y);
+    y += 14;
+    addLine(title, { bold: true, size: 12 });
+  }
+
+  function addField(label, value) {
+    addLine(label + ': ' + value, { size: 11 });
+  }
+
+  function addNumberedList(items) {
+    var num = 1;
+    items.filter(Boolean).forEach(function(item) {
+      addLine(num + '. ' + item, { indent: 12 });
+      num++;
+    });
+    if (num === 1) addLine('None.', { indent: 12 });
+  }
+
+  function addSignatureLine(label, name) {
+    y += 24;
+    if (y > pageH - margin - 60) { doc.addPage(); y = margin; }
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    const lineEnd = margin + 260;
+    doc.line(margin, y, lineEnd, y);
+    doc.text(label + (name ? '   ' + name : ''), margin, y + 14);
+    y += 36;
+  }
+
+  // TITLE
+  addLine('Meeting Minutes — CV Compost Club', { bold: true, size: 16, after: 4 });
+
+  // HEADER INFO
+  addSection('Meeting Information');
+  addField('Date',      dateStr);
+  addField('Time',      timeStart);
+  addField('Adjourned', timeAdj);
+  addField('Location',  location);
+  addField('Presiding Officer', PRESIDENT_NAME || '[ADD YOUR NAME]');
+  addField('Meeting Code', code + ' — ' + (codeData ? codeData.label : ''));
+
+  // ATTENDANCE
+  addSection('Attendance');
+  if (attendees.length) {
+    attendees.forEach(function(a) { addLine('• ' + a, { indent: 12 }); });
+  } else {
+    addLine('No attendance records found for this code.', { indent: 12 });
+  }
+
+  // AGENDA
+  addSection('Agenda Items (Discussion Topics)');
+  addNumberedList([agenda1, agenda2, agenda3]);
+
+  // ACTION ITEMS
+  addSection('Action Items (Decisions Made)');
+  addNumberedList([action1, action2, action3]);
+
+  // COMMITTEES
+  addSection('Report of Committees');
+  addLine('N/A', { indent: 12 });
+
+  // ASB
+  addSection('Communications with ASB');
+  addLine(asb, { indent: 12 });
+
+  // NOTES
+  addSection('Other Notes');
+  addLine(notes, { indent: 12 });
+
+  // SIGNATURES
+  addSection('Submitted By');
+  addLine('Prepared by: ' + (PRESIDENT_NAME || '[ADD YOUR NAME]'), { size: 11 });
+  y += 20;
+  addSignatureLine('Club President', PRESIDENT_NAME);
+  addSignatureLine('Club VP', VP_NAME);
+  addSignatureLine('Club Advisor', '');
+
+  // save
+  const filename = 'Minutes_CVCompostClub_' + dateVal + '.pdf';
+  doc.save(filename);
+  toast('Minutes PDF downloaded.', 'ok');
 }
 
 /* ── toast ──────────────────────────────────────────────── */

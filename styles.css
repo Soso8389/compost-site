@@ -495,3 +495,14 @@ h4  { font-size: .98rem; font-weight: 700; color: var(--green-deep); margin-bott
   text-transform: uppercase; padding: 2px 8px; border-radius: 100px;
   background: var(--tan-soft); color: var(--green); margin-left: 4px;
 }
+
+/* ── calendar add buttons ───────────────────────────────── */
+.ei-cal-links { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.ei-cal-btn {
+  font-size: .76rem; font-weight: 600; color: var(--moss);
+  padding: 3px 10px; border-radius: 100px;
+  border: 1px solid var(--leaf-soft); background: var(--cream);
+  transition: background .2s, border-color .2s;
+  white-space: nowrap;
+}
+.ei-cal-btn:hover { background: var(--leaf-soft); border-color: var(--leaf); }

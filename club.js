@@ -292,14 +292,21 @@ function renderCalendar() {
     return;
   }
 
-  el.innerHTML = upcoming.map(e => `
-    <div class="event-item">
-      <div>
-        <div class="ei-title">${e.title}</div>
-        <div class="ei-meta">${e.location || ''} ${e.start ? '· ' + e.start : ''}</div>
-      </div>
-      <div class="ei-date">${fmtDate(e.date)}</div>
-    </div>`).join('');
+  el.innerHTML = upcoming.map(function(e) {
+    const gcUrl = buildGoogleCalUrl(e);
+    const icsUrl = buildICSUrl(e);
+    return '<div class="event-item">' +
+      '<div>' +
+        '<div class="ei-title">' + e.title + '</div>' +
+        '<div class="ei-meta">' + (e.location || '') + (e.start ? ' · ' + e.start : '') + '</div>' +
+        '<div class="ei-cal-links">' +
+          '<a href="' + gcUrl + '" target="_blank" rel="noopener" class="ei-cal-btn">+ Google Calendar</a>' +
+          '<a href="' + icsUrl + '" download class="ei-cal-btn">+ Apple Calendar</a>' +
+        '</div>' +
+      '</div>' +
+      '<div class="ei-date">' + fmtDate(e.date) + '</div>' +
+    '</div>';
+  }).join('');
 }
 
 /* ── auth (mirrors index auth) ──────────────────────────── */
@@ -419,6 +426,56 @@ if (idFormEl) {
       setTimeout(fn, 250);
     }
   });
+}
+
+/* ── calendar helpers ───────────────────────────────────── */
+function toISOBasic(dateStr, timeStr) {
+  // combine date + optional time into YYYYMMDDTHHMMSS format
+  const d = new Date(dateStr);
+  if (timeStr) {
+    // try to parse "3:30 PM" style
+    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+    if (match) {
+      let h = parseInt(match[1]);
+      const m = parseInt(match[2]);
+      const ampm = match[3] ? match[3].toUpperCase() : null;
+      if (ampm === 'PM' && h < 12) h += 12;
+      if (ampm === 'AM' && h === 12) h = 0;
+      d.setHours(h, m, 0);
+    }
+  }
+  return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+}
+
+function buildGoogleCalUrl(e) {
+  const start = toISOBasic(e.date, e.start);
+  const end   = toISOBasic(e.date, e.end || e.start);
+  const params = new URLSearchParams({
+    action:   'TEMPLATE',
+    text:     e.title,
+    dates:    start + '/' + end,
+    location: e.location || '',
+    details:  'CV Compost Club event'
+  });
+  return 'https://calendar.google.com/calendar/render?' + params.toString();
+}
+
+function buildICSUrl(e) {
+  const start = toISOBasic(e.date, e.start);
+  const end   = toISOBasic(e.date, e.end || e.start);
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'BEGIN:VEVENT',
+    'SUMMARY:' + e.title,
+    'DTSTART:' + start,
+    'DTEND:' + end,
+    'LOCATION:' + (e.location || ''),
+    'DESCRIPTION:CV Compost Club',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+  return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
 }
 
 /* ── scroll helper ──────────────────────────────────────── */
