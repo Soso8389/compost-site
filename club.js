@@ -278,6 +278,17 @@ function renderAnnouncements() {
 }
 
 /* ── calendar ───────────────────────────────────────────── */
+function to12hr(t) {
+  if (!t) return '';
+  const parts = t.split(':');
+  let h = parseInt(parts[0]);
+  const m = parts[1] || '00';
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  if (h > 12) h -= 12;
+  if (h === 0) h = 12;
+  return h + ':' + m + ' ' + ampm;
+}
+
 function renderCalendar() {
   const el = document.getElementById('eventCalendar');
   if (!el) return;
@@ -298,7 +309,7 @@ function renderCalendar() {
     return '<div class="event-item">' +
       '<div>' +
         '<div class="ei-title">' + e.title + '</div>' +
-        '<div class="ei-meta">' + (e.location || '') + (e.start ? ' · ' + e.start : '') + '</div>' +
+        '<div class="ei-meta">' + (e.location || '') + (e.start ? ' · ' + to12hr(e.start) : '') + (e.end ? ' – ' + to12hr(e.end) : '') + '</div>' +
         '<div class="ei-cal-links">' +
           '<a href="' + gcUrl + '" target="_blank" rel="noopener" class="ei-cal-btn">+ Google Calendar</a>' +
           '<a href="' + icsUrl + '" download class="ei-cal-btn">+ Apple Calendar</a>' +

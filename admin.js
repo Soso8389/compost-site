@@ -317,6 +317,17 @@ async function deleteEvent(id) {
   catch (e) { toast('Failed to delete.', 'bad'); }
 }
 
+function to12hr(t) {
+  if (!t) return '';
+  const parts = t.split(':');
+  let h = parseInt(parts[0]);
+  const m = parts[1] || '00';
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  if (h > 12) h -= 12;
+  if (h === 0) h = 12;
+  return h + ':' + m + ' ' + ampm;
+}
+
 function renderAdminEvents() {
   const el = document.getElementById('adminEventsList');
   const eventSel = document.getElementById('codeEvent');
@@ -329,7 +340,7 @@ function renderAdminEvents() {
       <div class="admin-row">
         <div>
           <div class="ar-title">${e.title}</div>
-          <div class="ar-meta">${new Date(e.date).toLocaleDateString()} ${e.start ? '· ' + e.start : ''} ${e.location ? '· ' + e.location : ''}</div>
+          <div class="ar-meta">${new Date(e.date).toLocaleDateString()} ${e.start ? '· ' + to12hr(e.start) : ''} ${e.end ? '– ' + to12hr(e.end) : ''} ${e.location ? '· ' + e.location : ''}</div>
         </div>
         <div class="ar-actions">
           <button class="btn btn-danger btn-sm" onclick="deleteEvent('${e.id}')">Delete</button>
@@ -652,8 +663,8 @@ function onMinutesCodeChange() {
     const dd   = String(d.getDate()).padStart(2, '0');
     document.getElementById('minutesDate').value = yyyy + '-' + mm + '-' + dd;
   }
-  if (event.start)    document.getElementById('minutesTime').value      = event.start;
-  if (event.end)      document.getElementById('minutesAdjourned').value = event.end;
+  if (event.start)    document.getElementById('minutesTime').value      = to12hr(event.start);
+  if (event.end)      document.getElementById('minutesAdjourned').value = to12hr(event.end);
   if (event.location) document.getElementById('minutesLocation').value  = event.location;
 }
 
