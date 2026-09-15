@@ -506,3 +506,16 @@ h4  { font-size: .98rem; font-weight: 700; color: var(--green-deep); margin-bott
   white-space: nowrap;
 }
 .ei-cal-btn:hover { background: var(--leaf-soft); border-color: var(--leaf); }
+
+/* ── dynamic form items ─────────────────────────────────── */
+.dynamic-item {
+  display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
+}
+.dynamic-item input { flex: 1; }
+.dyn-remove {
+  width: 28px; height: 28px; border-radius: 50%; flex: 0 0 auto;
+  background: #f5e6e2; color: #7a3b2c; font-size: .8rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background .2s;
+}
+.dyn-remove:hover { background: #f1d4cc; }
