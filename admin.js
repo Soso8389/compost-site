@@ -170,6 +170,7 @@ function startListeners() {
     state.events = [];
     snap.forEach(doc => state.events.push({ id: doc.id, ...doc.data() }));
     renderAdminEvents();
+    renderCodes();
   });
   db.collection('codes').onSnapshot(snap => {
     state.codes = {};
@@ -221,6 +222,7 @@ function showTab(name) {
     giftcards:     renderAdminGiftCards,
     admins:        renderAdminsList,
     minutes:       function() {},
+    stats:         function() {},
   };
   if (renders[name]) renders[name]();
 }
@@ -413,54 +415,89 @@ function renderCodes() {
 /* ── leaderboard ────────────────────────────────────────── */
 function thisMonthKey() { const d = new Date(); return d.getFullYear() + '-' + d.getMonth(); }
 
-async function adjustPoints(phone, current) {
-  const val = prompt('New point total for this member (current: ' + current + '):');
+let lbAdminCardIndex = 0;
+
+async function adjustPoints(phone, cardId, cardName, current) {
+  const val = prompt('New point total for ' + cardName + ' (current: ' + current + '):');
   if (val === null || val === '') return;
   const n = parseInt(val);
   if (isNaN(n) || n < 0) { toast('Enter a valid number.', 'bad'); return; }
 
   const u = state.users[phone]; if (!u) return;
 
-  // rebuild contributions to match point total for this month
-  const other    = (u.contributions || []).filter(c => {
-    const d = new Date(c.ts); return (d.getFullYear() + '-' + d.getMonth()) !== thisMonthKey();
+  // keep contributions for other cards and other months, rebuild this card this month
+  const keep = (u.contributions || []).filter(c => {
+    const inMonth = (new Date(c.ts).getFullYear() + '-' + new Date(c.ts).getMonth()) === thisMonthKey();
+    if (!inMonth) return true;           // keep other months
+    if (c.cardId !== cardId) return true; // keep other cards
+    return false;
   });
-  const thisMonth = Array.from({ length: n }, (_, i) => ({ ts: Date.now() + i, approved: true }));
-  u.contributions = [...other, ...thisMonth];
-  u.points = n;
+  const newContribs = Array.from({ length: n }, (_, i) => ({
+    ts: Date.now() + i, approved: true, cardId, cardName
+  }));
+  u.contributions = [...keep, ...newContribs];
 
   try {
     await db.collection('users').doc(phone).set(u);
-    toast('Updated.', 'ok');
+    toast('Updated ' + u.name + ' — ' + cardName + ': ' + n + ' pts.', 'ok');
+    renderLeaderboard();
   } catch (e) { toast('Failed to update.', 'bad'); }
 }
 
 function renderLeaderboard() {
   const el = document.getElementById('adminLeaderboard');
+  if (!el) return;
+  const cards = state.giftcards;
   const users = Object.values(state.users);
+
   if (!users.length) { el.innerHTML = '<p class="empty-admin">No members yet.</p>'; return; }
+  if (!cards.length) {
+    el.innerHTML = '<p class="empty-admin">No gift cards set up yet. Add cards in the Gift Cards tab first.</p>';
+    return;
+  }
 
-  const ranked = users.map(u => ({
-    ...u,
-    monthPts: (u.contributions || []).filter(c => {
-      const d = new Date(c.ts); return (d.getFullYear() + '-' + d.getMonth()) === thisMonthKey();
-    }).length
-  })).sort((a, b) => b.monthPts - a.monthPts);
+  if (lbAdminCardIndex >= cards.length) lbAdminCardIndex = 0;
+  const gc = cards[lbAdminCardIndex];
 
-  el.innerHTML = ranked.map((u, i) => `
-    <div class="admin-row">
-      <div style="display:flex;align-items:center;gap:16px">
-        <div style="font-family:var(--display);font-size:1.2rem;font-weight:600;color:var(--moss);width:28px;text-align:center">${i + 1}</div>
-        <div>
-          <div class="ar-title">${u.name}</div>
-          <div class="ar-meta">${u.phone} · ${(u.contributions||[]).length} all-time</div>
-        </div>
-      </div>
-      <div class="ar-actions" style="align-items:center">
-        <span class="member-pts">${u.monthPts} pts</span>
-        <button class="btn btn-ghost btn-sm" onclick="adjustPoints('${u.phone}', ${u.monthPts})">Edit</button>
-      </div>
-    </div>`).join('');
+  // tab buttons
+  const tabs = cards.map((c, i) =>
+    '<button class="lb-admin-tab' + (i === lbAdminCardIndex ? ' active' : '') + '" onclick="lbAdminSwitch(' + i + ')">' +
+    (c.image ? '<img src="' + c.image + '" style="width:20px;height:16px;object-fit:cover;border-radius:3px;margin-right:6px;vertical-align:middle" />' : '') +
+    c.name + '</button>'
+  ).join('');
+
+  // ranked for this card this month
+  const ranked = users.map(u => {
+    const pts = (u.contributions || []).filter(c => {
+      const inMonth = (new Date(c.ts).getFullYear() + '-' + new Date(c.ts).getMonth()) === thisMonthKey();
+      return inMonth && c.approved && c.cardId === gc.id;
+    }).length;
+    return { name: u.name, phone: u.phone, points: pts };
+  }).sort((a, b) => b.points - a.points);
+
+  const rows = ranked.map((u, i) =>
+    '<div class="admin-row">' +
+      '<div style="display:flex;align-items:center;gap:16px">' +
+        '<div style="font-family:var(--display);font-size:1.2rem;font-weight:600;color:var(--moss);width:28px;text-align:center">' + (i + 1) + '</div>' +
+        '<div><div class="ar-title">' + u.name + '</div><div class="ar-meta">' + u.phone + '</div></div>' +
+      '</div>' +
+      '<div class="ar-actions" style="align-items:center">' +
+        '<span class="member-pts">' + u.points + ' pts</span>' +
+        '<button class="btn btn-ghost btn-sm" ' +
+          'data-phone="' + u.phone + '" data-cardid="' + gc.id + '" data-cardname="' + gc.name + '" data-pts="' + u.points + '" ' +
+          'onclick="adjustPoints(this.dataset.phone,this.dataset.cardid,this.dataset.cardname,+this.dataset.pts)">Edit</button>' +
+      '</div>' +
+    '</div>'
+  ).join('') || '<p class="empty-admin">No entries for ' + gc.name + ' this month.</p>';
+
+  el.innerHTML =
+    '<div class="lb-admin-tabs">' + tabs + '</div>' +
+    '<div style="margin-top:16px">' + rows + '</div>';
+}
+
+function lbAdminSwitch(i) {
+  lbAdminCardIndex = i;
+  renderLeaderboard();
 }
 
 /* ── members ────────────────────────────────────────────── */
