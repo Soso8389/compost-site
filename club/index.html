@@ -169,29 +169,18 @@
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5f8050" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
       Volunteer shifts
     </h2>
-    <p class="section-sub" id="volDescription">Pick a date to staff the compost station at lunch. Counts toward community service hours.</p>
-    <div class="club-panel" style="max-width:480px">
-      <div class="field">
-        <label>Select a date <span class="req">*</span></label>
-        <input type="date" id="volDate" min="" style="cursor:pointer" onchange="onVolDateChange()" />
-      </div>
-      <div id="volDateInfo" style="margin-bottom:16px;display:none">
-        <div id="volSpotsLeft" style="font-size:.9rem;font-weight:600;color:var(--moss)"></div>
-        <div id="volDateFull" style="display:none;color:#c17f24;font-size:.88rem;margin-top:4px">This date is full. Please choose another.</div>
-        <div id="volDateBlocked" style="display:none;color:#c17f24;font-size:.88rem;margin-top:4px">Volunteering is not available on this date.</div>
-      </div>
-      <button class="btn btn-primary btn-block" id="volSignupBtn" onclick="confirmShift()">Sign up for this shift</button>
-      <p style="font-size:.82rem;color:var(--muted);margin-top:10px" id="volHoursNote"></p>
+    <p class="section-sub">Pick a lunch shift to staff the compost station. 12:51 to 1:21 PM. Counts as service hours.</p>
+    <div class="shift-options" id="shiftOptions">
+      <button class="shift-opt" data-shift="Monday"    onclick="selectShift(this)">Monday</button>
+      <button class="shift-opt" data-shift="Tuesday"   onclick="selectShift(this)">Tuesday</button>
+      <button class="shift-opt" data-shift="Wednesday" onclick="selectShift(this)">Wednesday</button>
+      <button class="shift-opt" data-shift="Thursday"  onclick="selectShift(this)">Thursday</button>
+      <button class="shift-opt" data-shift="Friday"    onclick="selectShift(this)">Friday</button>
     </div>
-    <div class="my-shifts" id="myShifts" style="margin-top:24px;display:none">
-      <h4>Your upcoming shifts</h4>
+    <button class="btn btn-primary" onclick="confirmShift()">Sign up for shift</button>
+    <div class="my-shifts" id="myShifts" style="margin-top:20px;display:none">
+      <h4>Your shifts</h4>
       <div id="myShiftTags"></div>
-    </div>
-
-    <!-- SMS UNSUBSCRIBE -->
-    <div id="smsUnsubWrap" style="display:none;margin-top:32px;padding-top:24px;border-top:1px solid var(--tan-soft)">
-      <p style="font-size:.88rem;color:var(--muted);margin-bottom:10px">No longer want SMS announcements?</p>
-      <button class="btn btn-ghost btn-sm" onclick="unsubscribeSMS()" id="smsUnsubBtn">Unsubscribe from texts</button>
     </div>
   </div>
 
