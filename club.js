@@ -11,7 +11,7 @@ const USE_FIRESTORE = !!(FB.apiKey && FB.projectId);
 let db   = null;
 let selectedShift = null;
 
-const state = { users: {}, events: [], codes: {}, announcements: [], ready: false };
+const state = { users: {}, events: [], codes: {}, announcements: [], volunteers: {}, volSettings: {}, ready: false };
 
 /* ── helpers ────────────────────────────────────────────── */
 function normPhone(p)  { return (p || '').replace(/\D/g, ''); }
@@ -54,6 +54,20 @@ async function initFirebase() {
       snap.forEach(doc => state.announcements.push({ id: doc.id, ...doc.data() }));
       renderAnnouncements();
     }, err => console.warn('Announcements error:', err));
+
+    // volunteer signups
+    db.collection('volunteers').onSnapshot(snap => {
+      state.volunteers = {};
+      snap.forEach(doc => { state.volunteers[doc.id] = doc.data(); });
+      renderMyShifts();
+      onVolDateChange();
+    });
+
+    // volunteer settings
+    db.collection('system').doc('volSettings').onSnapshot(doc => {
+      state.volSettings = doc.exists ? doc.data() : {};
+      applyVolSettings();
+    });
 
   } catch (e) {
     console.error('Firebase failed:', e);
@@ -100,6 +114,24 @@ function renderAll() {
   renderAttendanceHistory();
   renderCalendar();
   renderAnnouncements();
+  applyVolSettings();
+  renderSMSUnsubBtn();
+}
+
+function renderSMSUnsubBtn() {
+  const wrap = document.getElementById('smsUnsubWrap');
+  const btn  = document.getElementById('smsUnsubBtn');
+  const u    = DB.currentUser();
+  if (!wrap) return;
+  if (!u) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  if (u.smsOptOut) {
+    btn.textContent = 'Unsubscribed from texts';
+    btn.disabled    = true;
+  } else {
+    btn.textContent = 'Unsubscribe from texts';
+    btn.disabled    = false;
+  }
 }
 
 /* ── nav ────────────────────────────────────────────────── */
@@ -162,44 +194,146 @@ function renderMemberGreeting() {
 }
 
 /* ── volunteer shifts ───────────────────────────────────── */
-function selectShift(el) {
-  document.querySelectorAll('.shift-opt').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedShift = el.dataset.shift;
+function applyVolSettings() {
+  const s = state.volSettings;
+  const desc = document.getElementById('volDescription');
+  const note = document.getElementById('volHoursNote');
+  const dateInput = document.getElementById('volDate');
+  if (desc && s.description) desc.textContent = s.description;
+  if (note) note.textContent = s.hoursPerShift ? 'Earns ' + s.hoursPerShift + ' service hour' + (s.hoursPerShift === 1 ? '' : 's') + ' per shift.' : '';
+  // set min date to today
+  if (dateInput) {
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+  }
+}
+
+function isAdminUser() {
+  const u = DB.currentUser();
+  if (!u) return false;
+  const adminPhone = (window.CONFIG && window.CONFIG.adminPhone) ? window.CONFIG.adminPhone.replace(/\D/g,'') : '';
+  if (u.phone === adminPhone) return true;
+  // check secondary admins — stored in state if we had them, use a simpler check
+  return false; // secondary admin check happens server-side via Firestore
+}
+
+function onVolDateChange() {
+  const dateInput = document.getElementById('volDate');
+  const infoEl    = document.getElementById('volDateInfo');
+  const spotsEl   = document.getElementById('volSpotsLeft');
+  const fullEl    = document.getElementById('volDateFull');
+  const blockedEl = document.getElementById('volDateBlocked');
+  const btn       = document.getElementById('volSignupBtn');
+  if (!dateInput || !dateInput.value) { if (infoEl) infoEl.style.display = 'none'; return; }
+
+  const date     = dateInput.value;
+  const settings = state.volSettings;
+  const maxSlots = settings.maxPerDate || 3;
+  const blocked  = (settings.blockedDates || []);
+
+  if (infoEl) infoEl.style.display = 'block';
+  fullEl.style.display    = 'none';
+  blockedEl.style.display = 'none';
+  if (btn) btn.disabled = false;
+
+  // check blocked
+  if (blocked.includes(date)) {
+    blockedEl.style.display = 'block';
+    if (spotsEl) spotsEl.textContent = '';
+    if (btn) btn.disabled = true;
+    return;
+  }
+
+  // count signups for this date (exclude admins from count)
+  const dateData   = state.volunteers[date] || {};
+  const signups    = dateData.signups || [];
+  const u          = DB.currentUser();
+  const adminPhone = (window.CONFIG && window.CONFIG.adminPhone) ? window.CONFIG.adminPhone.replace(/\D/g,'') : '';
+  const regularCount = signups.filter(s => s.phone !== adminPhone).length;
+  const remaining  = Math.max(0, maxSlots - regularCount);
+
+  if (spotsEl) spotsEl.textContent = remaining + ' of ' + maxSlots + ' spot' + (maxSlots === 1 ? '' : 's') + ' remaining';
+
+  // check if full (admins bypass)
+  const isAdmin = u && u.phone === adminPhone;
+  if (remaining <= 0 && !isAdmin) {
+    fullEl.style.display = 'block';
+    if (btn) btn.disabled = true;
+  }
 }
 
 async function confirmShift() {
   if (!isLoggedIn()) { openAuth('Sign in to sign up for a shift.'); return; }
-  if (!selectedShift) { toast('Please select a day first.', 'bad'); return; }
+  const dateInput = document.getElementById('volDate');
+  if (!dateInput || !dateInput.value) { toast('Please select a date first.', 'bad'); return; }
   if (!requireStudentId(() => confirmShift())) return;
 
   const u = DB.currentUser();
   if (!u) { openAuth(); return; }
 
-  u.shifts = u.shifts || [];
+  const date     = dateInput.value;
+  const settings = state.volSettings;
+  const maxSlots = settings.maxPerDate || 3;
+  const adminPhone = (window.CONFIG && window.CONFIG.adminPhone) ? window.CONFIG.adminPhone.replace(/\D/g,'') : '';
+  const isAdmin  = u.phone === adminPhone;
 
-  if (u.shifts.includes(selectedShift)) {
-    toast('You are already signed up for ' + selectedShift + '.', 'bad');
-    return;
-  }
+  // re-check availability
+  const dateData  = state.volunteers[date] || {};
+  const signups   = dateData.signups || [];
+  const alreadySigned = signups.some(s => s.phone === u.phone);
+  if (alreadySigned) { toast('You are already signed up for this date.', 'bad'); return; }
 
-  u.shifts.push(selectedShift);
-  await DB.upsert(u);
-  toast('Signed up for ' + selectedShift + ' lunch shift.', 'ok');
-  selectedShift = null;
-  document.querySelectorAll('.shift-opt').forEach(b => b.classList.remove('selected'));
-  renderMyShifts();
+  const regularCount = signups.filter(s => s.phone !== adminPhone).length;
+  if (regularCount >= maxSlots && !isAdmin) { toast('This date is full.', 'bad'); return; }
+
+  // add signup
+  const newSignup = {
+    phone:     u.phone,
+    name:      u.name,
+    studentId: u.studentId || '',
+    ts:        Date.now(),
+    isAdmin:   isAdmin
+  };
+
+  const newSignups = [...signups, newSignup];
+  try {
+    await db.collection('volunteers').doc(date).set({ signups: newSignups });
+    toast('Signed up for ' + new Date(date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' }) + '.', 'ok');
+    dateInput.value = '';
+    onVolDateChange();
+    renderMyShifts();
+  } catch(e) { toast('Failed to sign up. Try again.', 'bad'); console.error(e); }
 }
 
 function renderMyShifts() {
-  const el = document.getElementById('myShifts');
+  const el   = document.getElementById('myShifts');
   const tags = document.getElementById('myShiftTags');
-  const u = DB.currentUser();
-  if (!u || !(u.shifts || []).length) { el.style.display = 'none'; return; }
+  const u    = DB.currentUser();
+  if (!el) return;
+
+  // find all dates this user is signed up for
+  const myDates = Object.entries(state.volunteers)
+    .filter(([date, data]) => (data.signups || []).some(s => s.phone === u?.phone))
+    .map(([date]) => date)
+    .sort();
+
+  if (!u || !myDates.length) { el.style.display = 'none'; return; }
   el.style.display = 'block';
-  tags.innerHTML = u.shifts.map(s =>
-    `<span class="shift-tag">${s} lunch</span>`
+  tags.innerHTML = myDates.map(d =>
+    '<span class="shift-tag">' + new Date(d + 'T00:00:00').toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' }) + '</span>'
   ).join('');
+}
+
+/* ── sms unsubscribe ────────────────────────────────────── */
+async function unsubscribeSMS() {
+  const u = DB.currentUser();
+  if (!u) return;
+  if (u.smsOptOut) { toast('You are already unsubscribed from texts.', 'ok'); return; }
+  u.smsOptOut = true;
+  await DB.upsert(u);
+  toast('You have been unsubscribed from text announcements.', 'ok');
+  document.getElementById('smsUnsubBtn').textContent = 'Unsubscribed from texts';
+  document.getElementById('smsUnsubBtn').disabled = true;
 }
 
 /* ── attendance ─────────────────────────────────────────── */

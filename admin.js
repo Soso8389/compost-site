@@ -9,7 +9,7 @@ const ADMIN_PHONE  = (CFG.adminPhone || '8182793907').replace(/\D/g, '');
 const SMS_URL      = 'https://compost-site.vercel.app/api/send-sms';
 
 let db = null;
-const state = { users: {}, events: [], codes: {}, announcements: [], admins: {}, giftcards: [], lbs: 0, authed: false, isSuper: false, permissions: [] };
+const state = { users: {}, events: [], codes: {}, announcements: [], admins: {}, giftcards: [], volunteers: {}, volSettings: {}, lbs: 0, authed: false, isSuper: false, permissions: [] };
 
 /* ── crypto helpers ─────────────────────────────────────── */
 async function sha256(str) {
@@ -133,7 +133,7 @@ function enterAdmin(phone, isSuper, permissions) {
 function applyPermissions() {
   if (state.isSuper) return; // super admin sees everything
   const allowed = state.permissions;
-  const allTabs = ['announcements','events','codes','leaderboard','members','giftcards','minutes','stats','admins'];
+  const allTabs = ['announcements','events','codes','leaderboard','members','giftcards','volunteers','minutes','stats','admins'];
   allTabs.forEach(tab => {
     const btn   = document.querySelector(`.tab-btn[onclick="showTab('${tab}')"]`);
     const panel = document.getElementById('tab-' + tab);
@@ -189,6 +189,17 @@ function startListeners() {
     renderAdminGiftCards();
   });
 
+  db.collection('volunteers').onSnapshot(snap => {
+    state.volunteers = {};
+    snap.forEach(doc => { state.volunteers[doc.id] = doc.data(); });
+    renderAdminVolunteers();
+  });
+
+  db.collection('system').doc('volSettings').onSnapshot(doc => {
+    state.volSettings = doc.exists ? doc.data() : {};
+    loadVolSettingsForm();
+  });
+
   db.collection('admin').doc('secondary').onSnapshot(doc => {
     state.admins = doc.exists ? (doc.data().admins || {}) : {};
     renderAdminsList();
@@ -223,6 +234,7 @@ function showTab(name) {
     admins:        renderAdminsList,
     minutes:       function() {},
     stats:         function() {},
+    volunteers:    renderAdminVolunteers,
   };
   if (renders[name]) renders[name]();
 }
@@ -251,7 +263,9 @@ async function postAnnouncement() {
             body:    JSON.stringify({ phones, message: (title + ': ' + message).trim() })
           });
           const data = await r.json();
-          toast('Announcement posted. ' + data.sent + ' text' + (data.sent === 1 ? '' : 's') + ' sent.', 'ok');
+          const sent = typeof data.sent === 'number' ? data.sent : 0;
+          console.log('SMS response:', data);
+          toast('Announcement posted. ' + sent + ' text' + (sent === 1 ? '' : 's') + ' sent.', 'ok');
         } catch (e) {
           toast('Announcement posted but SMS failed.', 'bad');
           console.error(e);
@@ -483,9 +497,9 @@ function renderLeaderboard() {
       '</div>' +
       '<div class="ar-actions" style="align-items:center">' +
         '<span class="member-pts">' + u.points + ' pts</span>' +
-        '<button class="btn btn-ghost btn-sm" ' +
-          'data-phone="' + u.phone + '" data-cardid="' + gc.id + '" data-cardname="' + gc.name + '" data-pts="' + u.points + '" ' +
-          'onclick="adjustPoints(this.dataset.phone,this.dataset.cardid,this.dataset.cardname,+this.dataset.pts)">Edit</button>' +
+        '<button class="btn btn-ghost btn-sm"' +
+          ' data-phone="' + u.phone + '" data-cardid="' + gc.id + '" data-cardname="' + gc.name + '" data-pts="' + u.points + '"' +
+          ' onclick="adjustPoints(this.dataset.phone,this.dataset.cardid,this.dataset.cardname,+this.dataset.pts)">Edit</button>' +
       '</div>' +
     '</div>'
   ).join('') || '<p class="empty-admin">No entries for ' + gc.name + ' this month.</p>';
@@ -578,19 +592,16 @@ function renderAdminGiftCards() {
     el.innerHTML = '<p class="empty-admin">No gift cards yet. Add one above.</p>';
     return;
   }
-  el.innerHTML = state.giftcards.map(gc => `
-    <div class="admin-row">
-      <div style="display:flex;align-items:center;gap:14px">
-        ${gc.image ? `<img src="${gc.image}" alt="${gc.name}" style="width:48px;height:36px;object-fit:cover;border-radius:6px;background:var(--tan-soft)" />` : ''}
-        <div>
-          <div class="ar-title">${gc.name}</div>
-          <div class="ar-meta">${gc.image || 'No image set'}</div>
-        </div>
-      </div>
-      <div class="ar-actions">
-        <button class="btn btn-danger btn-sm" onclick="removeGiftCard('${gc.id}', '${gc.name}')">Remove</button>
-      </div>
-    </div>`).join('');
+  el.innerHTML = state.giftcards.map(function(gc) {
+    var img = gc.image ? '<img src="' + gc.image + '" alt="' + gc.name + '" style="width:48px;height:36px;object-fit:cover;border-radius:6px;background:var(--tan-soft)" />' : '';
+    return '<div class="admin-row">' +
+      '<div style="display:flex;align-items:center;gap:14px">' + img +
+        '<div><div class="ar-title">' + gc.name + '</div><div class="ar-meta">' + (gc.image || 'No image set') + '</div></div>' +
+      '</div>' +
+      '<div class="ar-actions">' +
+        '<button class="btn btn-danger btn-sm" onclick="removeGiftCard(\'' + gc.id + '\', \'' + gc.name + '\')">' + 'Remove</button>' +
+      '</div></div>';
+  }).join('');
 }
 
 /* ── lbs stat ───────────────────────────────────────────── */
@@ -841,6 +852,177 @@ function compileMinutes() {
   const filename = 'Minutes_CVCompostClub_' + dateVal + '.pdf';
   doc.save(filename);
   toast('Minutes PDF downloaded.', 'ok');
+}
+
+/* ── volunteer admin ────────────────────────────────────── */
+function loadVolSettingsForm() {
+  const s = state.volSettings;
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
+  set('volMaxPerDate', s.maxPerDate || 3);
+  set('volStartTime',  s.startTime  || '12:51');
+  set('volEndTime',    s.endTime    || '13:21');
+  set('volHours',      s.hoursPerShift !== undefined ? s.hoursPerShift : 0.5);
+  set('volDesc',       s.description || '');
+  renderBlockedDates();
+}
+
+function renderBlockedDates() {
+  const el      = document.getElementById('volBlockedList');
+  const blocked = state.volSettings.blockedDates || [];
+  if (!el) return;
+  if (!blocked.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<p style="font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:6px">Blocked dates:</p>' +
+    blocked.map(d => '<span class="shift-tag" style="margin:2px">' + d +
+      ' <button onclick="unblockDate(\'' + d + '\')" style="margin-left:4px;color:#7a3b2c;font-weight:700">✕</button></span>'
+    ).join('');
+}
+
+async function blockVolDate() {
+  const d = document.getElementById('volBlockDate').value;
+  if (!d) { toast('Select a date to block.', 'bad'); return; }
+  const blocked = [...(state.volSettings.blockedDates || [])];
+  if (blocked.includes(d)) { toast('Already blocked.', 'bad'); return; }
+  blocked.push(d);
+  blocked.sort();
+  try {
+    await db.collection('system').doc('volSettings').set({ ...state.volSettings, blockedDates: blocked });
+    document.getElementById('volBlockDate').value = '';
+    toast('Date blocked: ' + d, 'ok');
+  } catch(e) { toast('Failed.', 'bad'); }
+}
+
+async function unblockDate(d) {
+  const blocked = (state.volSettings.blockedDates || []).filter(x => x !== d);
+  try {
+    await db.collection('system').doc('volSettings').set({ ...state.volSettings, blockedDates: blocked });
+    toast('Date unblocked.', 'ok');
+  } catch(e) { toast('Failed.', 'bad'); }
+}
+
+async function saveVolSettings() {
+  const get = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const settings = {
+    maxPerDate:    parseInt(get('volMaxPerDate')) || 3,
+    startTime:     get('volStartTime') || '12:51',
+    endTime:       get('volEndTime')   || '13:21',
+    hoursPerShift: parseFloat(get('volHours')) || 0.5,
+    description:   get('volDesc') || '',
+    blockedDates:  state.volSettings.blockedDates || [],
+  };
+  try {
+    await db.collection('system').doc('volSettings').set(settings);
+    toast('Settings saved.', 'ok');
+  } catch(e) { toast('Failed to save.', 'bad'); }
+}
+
+function renderAdminVolunteers() {
+  const el = document.getElementById('adminVolList');
+  if (!el) return;
+  const dates = Object.keys(state.volunteers).sort();
+  if (!dates.length) { el.innerHTML = '<p class="empty-admin">No volunteer signups yet.</p>'; return; }
+
+  const adminPhone = (CFG.adminPhone || '').replace(/\D/g,'');
+  const settings   = state.volSettings;
+  const maxSlots   = settings.maxPerDate || 3;
+  const startTime  = to12hr(settings.startTime || '12:51');
+  const endTime    = to12hr(settings.endTime   || '13:21');
+  const hours      = settings.hoursPerShift !== undefined ? settings.hoursPerShift : 0.5;
+
+  el.innerHTML = dates.map(date => {
+    const data      = state.volunteers[date] || {};
+    const signups   = data.signups || [];
+    const regulars  = signups.filter(s => s.phone !== adminPhone);
+    const admins    = signups.filter(s => s.phone === adminPhone);
+    const dateLabel = new Date(date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+
+    const rows = signups.map(s =>
+      '<div class="admin-row">' +
+        '<div>' +
+          '<div class="ar-title">' + s.name + (s.isAdmin ? ' <span class="badge-sm green">Supervisor</span>' : '') + '</div>' +
+          '<div class="ar-meta">' + s.phone + ' · ID: ' + (s.studentId || '<span style="color:#c17f24">not set</span>') + ' · ' + hours + ' hr' + (hours === 1 ? '' : 's') + '</div>' +
+        '</div>' +
+        '<div class="ar-actions">' +
+          '<button class="btn btn-danger btn-sm" onclick="removeVolunteer(\'' + date + '\', \'' + s.phone + '\')">' + 'Remove</button>' +
+        '</div>' +
+      '</div>'
+    ).join('');
+
+    return '<div style="margin-bottom:28px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">' +
+        '<div>' +
+          '<div style="font-family:var(--display);font-size:1.1rem;font-weight:500;color:var(--green-deep)">' + dateLabel + '</div>' +
+          '<div style="font-size:.84rem;color:var(--muted)">' + startTime + ' – ' + endTime + ' · ' + regulars.length + ' / ' + maxSlots + ' spots filled</div>' +
+        '</div>' +
+      '</div>' +
+      (rows || '<p class="empty-admin" style="padding:0">No signups yet.</p>') +
+    '</div>';
+  }).join('');
+}
+
+async function removeVolunteer(date, phone) {
+  if (!confirm('Remove this volunteer?')) return;
+  const data    = state.volunteers[date] || {};
+  const signups = (data.signups || []).filter(s => s.phone !== phone);
+  try {
+    await db.collection('volunteers').doc(date).set({ signups });
+    toast('Volunteer removed.', 'ok');
+  } catch(e) { toast('Failed.', 'bad'); }
+}
+
+async function addVolManual() {
+  const phone = prompt("Enter the member's phone number:");
+  if (!phone) return;
+  const clean = phone.replace(/\D/g,'');
+  const u     = state.users[clean];
+  if (!u) { toast('No member found with that number.', 'bad'); return; }
+  const date  = prompt('Enter the date (YYYY-MM-DD):');
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { toast('Invalid date format.', 'bad'); return; }
+
+  const data     = state.volunteers[date] || {};
+  const signups  = data.signups || [];
+  if (signups.some(s => s.phone === clean)) { toast('Already signed up for this date.', 'bad'); return; }
+
+  const adminPhone = (CFG.adminPhone || '').replace(/\D/g,'');
+  signups.push({ phone: clean, name: u.name, studentId: u.studentId || '', ts: Date.now(), isAdmin: clean === adminPhone });
+  try {
+    await db.collection('volunteers').doc(date).set({ signups });
+    toast(u.name + ' added to ' + date + '.', 'ok');
+  } catch(e) { toast('Failed.', 'bad'); }
+}
+
+function exportVolCSV() {
+  const settings  = state.volSettings;
+  const startTime = to12hr(settings.startTime || '12:51');
+  const endTime   = to12hr(settings.endTime   || '13:21');
+  const hours     = settings.hoursPerShift !== undefined ? settings.hoursPerShift : 0.5;
+  const adminPhone = (CFG.adminPhone || '').replace(/\D/g,'');
+
+  const rows = [['Date', 'Name', 'Phone', 'Student ID', 'Shift Start', 'Shift End', 'Hours Earned', 'Role']];
+  Object.keys(state.volunteers).sort().forEach(date => {
+    const signups = state.volunteers[date].signups || [];
+    signups.forEach(s => {
+      rows.push([
+        date,
+        s.name,
+        s.phone,
+        s.studentId || '',
+        startTime,
+        endTime,
+        s.isAdmin ? 0 : hours,
+        s.isAdmin ? 'Supervisor' : 'Volunteer'
+      ]);
+    });
+  });
+
+  const csv  = rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'VolunteerReport_CVCompostClub.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV exported.', 'ok');
 }
 
 /* ── toast ──────────────────────────────────────────────── */
