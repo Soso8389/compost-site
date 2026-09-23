@@ -11,11 +11,6 @@ const SMS_URL      = 'https://compost-site.vercel.app/api/send-sms';
 let db = null;
 const state = { users: {}, events: [], codes: {}, announcements: [], admins: {}, giftcards: [], lbs: 0, authed: false, isSuper: false, permissions: [] };
 
-function giftImgSrc(filename) {
-  if (!filename) return '';
-  return /^(https?:)?\/\//.test(filename) || filename.startsWith('/') ? filename : '/' + filename;
-}
-
 /* ── crypto helpers ─────────────────────────────────────── */
 async function sha256(str) {
   const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -253,7 +248,7 @@ async function postAnnouncement() {
           const r = await fetch(SMS_URL, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ phones, message: title + ': ' + message })
+            body:    JSON.stringify({ phones, message: (title + ': ' + message).trim() })
           });
           const data = await r.json();
           toast('Announcement posted. ' + data.sent + ' text' + (data.sent === 1 ? '' : 's') + ' sent.', 'ok');
@@ -467,7 +462,7 @@ function renderLeaderboard() {
   // tab buttons
   const tabs = cards.map((c, i) =>
     '<button class="lb-admin-tab' + (i === lbAdminCardIndex ? ' active' : '') + '" onclick="lbAdminSwitch(' + i + ')">' +
-    (c.image ? '<img src="' + giftImgSrc(c.image) + '" style="width:20px;height:16px;object-fit:cover;border-radius:3px;margin-right:6px;vertical-align:middle" />' : '') +
+    (c.image ? '<img src="' + c.image + '" style="width:20px;height:16px;object-fit:cover;border-radius:3px;margin-right:6px;vertical-align:middle" />' : '') +
     c.name + '</button>'
   ).join('');
 
@@ -586,7 +581,7 @@ function renderAdminGiftCards() {
   el.innerHTML = state.giftcards.map(gc => `
     <div class="admin-row">
       <div style="display:flex;align-items:center;gap:14px">
-        ${gc.image ? `<img src="${giftImgSrc(gc.image)}" alt="${gc.name}" style="width:48px;height:36px;object-fit:cover;border-radius:6px;background:var(--tan-soft)" />` : ''}
+        ${gc.image ? `<img src="${gc.image}" alt="${gc.name}" style="width:48px;height:36px;object-fit:cover;border-radius:6px;background:var(--tan-soft)" />` : ''}
         <div>
           <div class="ar-title">${gc.name}</div>
           <div class="ar-meta">${gc.image || 'No image set'}</div>
