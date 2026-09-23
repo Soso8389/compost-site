@@ -109,10 +109,10 @@ function renderNav() {
 
   if (isLoggedIn()) {
     cta.innerHTML = `
-      <a href="club.html" class="btn btn-ghost" style="padding:9px 18px">Club page</a>
+      <a href="/club" class="btn btn-ghost" style="padding:9px 18px">Club page</a>
       <button class="btn btn-primary" style="padding:9px 18px" onclick="logout()">Log out</button>`;
     if (mobileAuth) mobileAuth.innerHTML = `
-      <a href="club.html" class="m-primary" onclick="closeMenu()">Club page</a>
+      <a href="/club" class="m-primary" onclick="closeMenu()">Club page</a>
       <button onclick="logout();closeMenu()" style="color:var(--muted)">Log out</button>`;
   } else {
     cta.innerHTML = `

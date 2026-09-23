@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="../styles.css" />
   <style>
     .page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 60px 24px; }
     .card { background: var(--cream); border: 1px solid var(--tan-soft); border-radius: 24px; padding: 56px 40px; max-width: 480px; width: 100%; text-align: center; }
@@ -26,14 +26,14 @@
     </div>
     <h1 id="title">Approving...</h1>
     <p id="msg">Adding a point to this account.</p>
-    <a href="index.html" class="btn btn-primary" id="backBtn" style="display:none">Back to the site</a>
+    <a href="/" class="btn btn-primary" id="backBtn" style="display:none">Back to the site</a>
   </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
-<script src="config.js"></script>
+<script src="../config.js"></script>
 <script>
   const CFG = window.CONFIG || {};
   const FB  = CFG.firebase || {};
