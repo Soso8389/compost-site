@@ -46,6 +46,19 @@ async function initFirebase() {
       renderBoard();
     });
 
+    // volunteers
+    db.collection('volunteers').onSnapshot(snap => {
+      state.volunteers = {};
+      snap.forEach(doc => { state.volunteers[doc.id] = doc.data(); });
+      if (typeof VOL !== 'undefined') VOL.update(state.volunteers, state.volSettings);
+    });
+
+    // volunteer settings
+    db.collection('system').doc('volSettings').onSnapshot(doc => {
+      state.volSettings = doc.exists ? doc.data() : {};
+      if (typeof VOL !== 'undefined') VOL.update(state.volunteers, state.volSettings);
+    });
+
     // listen for lbs stat
     db.collection('system').doc('stats').onSnapshot(doc => {
       if (doc.exists) { state.lbs = doc.data().lbs || 0; renderStats(); }
@@ -99,7 +112,6 @@ async function findUser(phone) {
 
 /* ── nav ─────────────────────────────────────────────────── */
 function renderNav() {
-  renderVolForm();
   const cta      = document.getElementById('navCta');
   const hero     = document.getElementById('heroActions');
   const mobileAuth = document.getElementById('mobileMenuAuth');
@@ -273,6 +285,7 @@ if (idFormEl) {
     u.studentId = val;
     await DB.upsert(u);
     closeIdModal();
+    if (typeof VOL !== 'undefined') VOL.renderConfirm();
     renderVolForm();
     toast('Student ID saved. All features are now unlocked.', 'ok');
     if (typeof window._pendingIdAction === 'function') {
@@ -386,40 +399,11 @@ function closeGiftModal() {
   selectedGiftCard = null;
 }
 
-/* ── volunteer form gating ──────────────────────────────── */
+/* ── volunteer widget ───────────────────────────────────── */
 function renderVolForm() {
-  const guestMsg = document.getElementById('volGuestMsg');
-  const noIdMsg  = document.getElementById('volNoIdMsg');
-  const form     = document.getElementById('volForm');
-  if (!form) return;
-
-  const u = DB.currentUser();
-
-  if (!u) {
-    if (guestMsg) guestMsg.style.display = 'block';
-    if (noIdMsg)  noIdMsg.style.display  = 'none';
-    form.style.display = 'none';
-    return;
+  if (typeof VOL !== 'undefined') {
+    VOL.init(db, state.volunteers || {}, state.volSettings || {}, 'volWidget');
   }
-
-  if (!u.studentId || u.studentId.length !== 6) {
-    if (guestMsg) guestMsg.style.display = 'none';
-    if (noIdMsg)  noIdMsg.style.display  = 'block';
-    form.style.display = 'none';
-    return;
-  }
-
-  if (guestMsg) guestMsg.style.display = 'none';
-  if (noIdMsg)  noIdMsg.style.display  = 'none';
-  form.style.display = 'block';
-
-  // pre-fill hidden fields
-  const nameEl  = document.getElementById('volMemberName');
-  const phoneEl = document.getElementById('volMemberPhone');
-  const idEl    = document.getElementById('volStudentId');
-  if (nameEl)  nameEl.value  = u.name || '';
-  if (phoneEl) phoneEl.value = u.phone || '';
-  if (idEl)    idEl.value    = u.studentId || '';
 }
 
 /* ── stats ──────────────────────────────────────────────── */

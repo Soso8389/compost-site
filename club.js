@@ -60,7 +60,7 @@ async function initFirebase() {
       state.volunteers = {};
       snap.forEach(doc => { state.volunteers[doc.id] = doc.data(); });
       renderMyShifts();
-      onVolDateChange();
+      if (typeof VOL !== 'undefined') VOL.update(state.volunteers, state.volSettings);
     });
 
     // volunteer settings
@@ -114,7 +114,7 @@ function renderAll() {
   renderAttendanceHistory();
   renderCalendar();
   renderAnnouncements();
-  applyVolSettings();
+  applyVolSettings(); // initialises VOL widget
   renderSMSUnsubBtn();
 }
 
@@ -193,18 +193,10 @@ function renderMemberGreeting() {
   }
 }
 
-/* ── volunteer shifts ───────────────────────────────────── */
+/* ── volunteer widget ───────────────────────────────────── */
 function applyVolSettings() {
-  const s = state.volSettings;
-  const desc = document.getElementById('volDescription');
-  const note = document.getElementById('volHoursNote');
-  const dateInput = document.getElementById('volDate');
-  if (desc && s.description) desc.textContent = s.description;
-  if (note) note.textContent = s.hoursPerShift ? 'Earns ' + s.hoursPerShift + ' service hour' + (s.hoursPerShift === 1 ? '' : 's') + ' per shift.' : '';
-  // set min date to today
-  if (dateInput) {
-    const today = new Date().toISOString().split('T')[0];
-    dateInput.min = today;
+  if (typeof VOL !== 'undefined') {
+    VOL.init(db, state.volunteers, state.volSettings, 'volWidget');
   }
 }
 

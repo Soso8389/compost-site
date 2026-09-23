@@ -245,42 +245,9 @@
       <div class="form-card reveal">
         <h3 style="margin-bottom:6px">Volunteer sign-up</h3>
         <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px">Pick a lunch shift and we will add you to the rotation.</p>
-
-        <!-- guest / no ID state -->
-        <div id="volGuestMsg" style="display:none">
-          <p style="color:var(--muted);font-size:.92rem;margin-bottom:16px">You need an account with a student ID to sign up to volunteer.</p>
-          <button class="btn btn-primary btn-block" onclick="openJoin()">Create an account</button>
-          <p class="form-note">Already have one? <button onclick="openAuth()" style="color:var(--moss);font-weight:600;text-decoration:underline">Sign in</button></p>
+        <div id="volWidget">
+          <!-- rendered by JS -->
         </div>
-
-        <!-- no student ID state -->
-        <div id="volNoIdMsg" style="display:none">
-          <p style="color:var(--muted);font-size:.92rem;margin-bottom:16px">You need to add your student ID before signing up to volunteer.</p>
-          <button class="btn btn-primary btn-block" onclick="openIdModal()">Add student ID</button>
-        </div>
-
-        <!-- form (shown when logged in with ID) -->
-        <form id="volForm" action="https://formsubmit.co/cvhs.composting@gmail.com" method="POST" style="display:none">
-          <input type="hidden" name="_subject" value="New Volunteer Sign-up — CVHS Can Compost" />
-          <input type="hidden" name="_captcha" value="false" />
-          <input type="hidden" name="_next" value="https://composting.cv/thanks" />
-          <input type="hidden" name="member_name"  id="volMemberName"  value="" />
-          <input type="hidden" name="member_phone" id="volMemberPhone" value="" />
-          <input type="hidden" name="student_id"   id="volStudentId"   value="" />
-          <div class="field">
-            <label>Which day works? <span class="req">*</span></label>
-            <select name="shift" required>
-              <option value="" disabled selected>Choose a day</option>
-              <option>Monday lunch</option>
-              <option>Tuesday lunch</option>
-              <option>Wednesday lunch</option>
-              <option>Thursday lunch</option>
-              <option>Friday lunch</option>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-primary btn-block">Sign up to volunteer</button>
-          <p class="form-note">More info will be sent before the day of your shift.</p>
-        </form>
       </div>
     </div>
   </div>
@@ -457,6 +424,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="config.js"></script>
+<script src="vol-widget.js"></script>
 <script src="app.js"></script>
 
 </body>
