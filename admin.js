@@ -288,7 +288,7 @@ function renderAdminAnnouncements() {
     <div class="admin-row">
       <div>
         <div class="ar-title">${a.title} ${a.pinned ? '<span class="badge-sm green">Pinned</span>' : ''}</div>
-        <div class="ar-meta">${a.message}</div>
+        <div class="ar-meta" style="white-space:pre-wrap">${a.message}</div>
         <div class="ar-meta" style="margin-top:4px">${new Date(a.ts).toLocaleDateString()}</div>
       </div>
       <div class="ar-actions">

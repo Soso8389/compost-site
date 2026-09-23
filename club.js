@@ -271,7 +271,7 @@ function renderAnnouncements() {
           ${a.title}
           ${a.pinned ? '<span class="a-pin">Pinned</span>' : ''}
         </div>
-        <div class="a-msg">${a.message}</div>
+        <div class="a-msg">${(a.message||"").replace(/\n/g,"<br>")}</div>
         <div class="a-date">${new Date(a.ts).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</div>
       </div>
     </div>`).join('');
