@@ -298,7 +298,23 @@ async function confirmShift() {
   const newSignups = [...signups, newSignup];
   try {
     await db.collection('volunteers').doc(date).set({ signups: newSignups });
-    toast('Signed up for ' + new Date(date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' }) + '.', 'ok');
+    const dateLabel = new Date(date + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+    toast('Signed up for ' + dateLabel + '.', 'ok');
+
+    // email notification via FormSubmit AJAX
+    fetch('https://formsubmit.co/ajax/cvhs.composting@gmail.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        _subject: 'New Volunteer Signup — ' + u.name,
+        name:       u.name,
+        phone:      u.phone,
+        student_id: u.studentId || 'not set',
+        date:       dateLabel,
+        source:     'Club page'
+      })
+    }).catch(() => {});
+
     dateInput.value = '';
     onVolDateChange();
     renderMyShifts();

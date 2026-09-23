@@ -99,6 +99,7 @@ async function findUser(phone) {
 
 /* ── nav ─────────────────────────────────────────────────── */
 function renderNav() {
+  renderVolForm();
   const cta      = document.getElementById('navCta');
   const hero     = document.getElementById('heroActions');
   const mobileAuth = document.getElementById('mobileMenuAuth');
@@ -272,6 +273,7 @@ if (idFormEl) {
     u.studentId = val;
     await DB.upsert(u);
     closeIdModal();
+    renderVolForm();
     toast('Student ID saved. All features are now unlocked.', 'ok');
     if (typeof window._pendingIdAction === 'function') {
       const fn = window._pendingIdAction;
@@ -358,8 +360,8 @@ function giftConfirmCard() {
   document.getElementById('giftMemberName').value  = u.name;
   document.getElementById('giftMemberPhone').value = u.phone;
   document.getElementById('giftSubject').value     = 'Gift Card Claim (' + gc.name + ') — ' + u.name;
-  const base = window.location.origin;
-  document.getElementById('giftApproveUrl').value  = base + '/approve?phone=' + u.phone + '&card=' + encodeURIComponent(gc.name) + '&cardId=' + encodeURIComponent(gc.id);
+  const base = window.location.origin + window.location.pathname.replace('/', '');
+  document.getElementById('giftApproveUrl').value  = base + 'approve?phone=' + u.phone + '&card=' + encodeURIComponent(gc.name) + '&cardId=' + encodeURIComponent(gc.id);
   document.getElementById('giftDenyUrl').value     = base + '/deny';
 
   const img  = document.getElementById('giftSelectedImg');
@@ -382,6 +384,42 @@ function closeGiftModal() {
   document.getElementById('giftOverlay').classList.remove('open');
   document.body.style.overflow = '';
   selectedGiftCard = null;
+}
+
+/* ── volunteer form gating ──────────────────────────────── */
+function renderVolForm() {
+  const guestMsg = document.getElementById('volGuestMsg');
+  const noIdMsg  = document.getElementById('volNoIdMsg');
+  const form     = document.getElementById('volForm');
+  if (!form) return;
+
+  const u = DB.currentUser();
+
+  if (!u) {
+    if (guestMsg) guestMsg.style.display = 'block';
+    if (noIdMsg)  noIdMsg.style.display  = 'none';
+    form.style.display = 'none';
+    return;
+  }
+
+  if (!u.studentId || u.studentId.length !== 6) {
+    if (guestMsg) guestMsg.style.display = 'none';
+    if (noIdMsg)  noIdMsg.style.display  = 'block';
+    form.style.display = 'none';
+    return;
+  }
+
+  if (guestMsg) guestMsg.style.display = 'none';
+  if (noIdMsg)  noIdMsg.style.display  = 'none';
+  form.style.display = 'block';
+
+  // pre-fill hidden fields
+  const nameEl  = document.getElementById('volMemberName');
+  const phoneEl = document.getElementById('volMemberPhone');
+  const idEl    = document.getElementById('volStudentId');
+  if (nameEl)  nameEl.value  = u.name || '';
+  if (phoneEl) phoneEl.value = u.phone || '';
+  if (idEl)    idEl.value    = u.studentId || '';
 }
 
 /* ── stats ──────────────────────────────────────────────── */

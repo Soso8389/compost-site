@@ -245,18 +245,28 @@
       <div class="form-card reveal">
         <h3 style="margin-bottom:6px">Volunteer sign-up</h3>
         <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px">Pick a lunch shift and we will add you to the rotation.</p>
-        <form action="https://formsubmit.co/cvhs.composting@gmail.com" method="POST">
+
+        <!-- guest / no ID state -->
+        <div id="volGuestMsg" style="display:none">
+          <p style="color:var(--muted);font-size:.92rem;margin-bottom:16px">You need an account with a student ID to sign up to volunteer.</p>
+          <button class="btn btn-primary btn-block" onclick="openJoin()">Create an account</button>
+          <p class="form-note">Already have one? <button onclick="openAuth()" style="color:var(--moss);font-weight:600;text-decoration:underline">Sign in</button></p>
+        </div>
+
+        <!-- no student ID state -->
+        <div id="volNoIdMsg" style="display:none">
+          <p style="color:var(--muted);font-size:.92rem;margin-bottom:16px">You need to add your student ID before signing up to volunteer.</p>
+          <button class="btn btn-primary btn-block" onclick="openIdModal()">Add student ID</button>
+        </div>
+
+        <!-- form (shown when logged in with ID) -->
+        <form id="volForm" action="https://formsubmit.co/cvhs.composting@gmail.com" method="POST" style="display:none">
           <input type="hidden" name="_subject" value="New Volunteer Sign-up — CVHS Can Compost" />
           <input type="hidden" name="_captcha" value="false" />
           <input type="hidden" name="_next" value="https://composting.cv/thanks" />
-          <div class="field">
-            <label>Name <span class="req">*</span></label>
-            <input type="text" name="name" required placeholder="Your name" />
-          </div>
-          <div class="field">
-            <label>Phone number <span class="req">*</span></label>
-            <input type="tel" name="phone" required placeholder="(818) 123-4567" />
-          </div>
+          <input type="hidden" name="member_name"  id="volMemberName"  value="" />
+          <input type="hidden" name="member_phone" id="volMemberPhone" value="" />
+          <input type="hidden" name="student_id"   id="volStudentId"   value="" />
           <div class="field">
             <label>Which day works? <span class="req">*</span></label>
             <select name="shift" required>
