@@ -109,6 +109,7 @@
       <button class="tab-btn" onclick="showTab('leaderboard')">Leaderboard</button>
       <button class="tab-btn" onclick="showTab('members')">Members</button>
       <button class="tab-btn" onclick="showTab('giftcards')">Gift Cards</button>
+      <button class="tab-btn" onclick="showTab('volunteers')">Volunteers</button>
       <button class="tab-btn" onclick="showTab('minutes')">Minutes</button>
       <button class="tab-btn" onclick="showTab('stats')" id="tabStats">Stats</button>
       <button class="tab-btn" onclick="showTab('admins')" id="tabAdmins">Admins</button>
@@ -185,6 +186,50 @@
       <div class="admin-section">
         <h2>Active codes</h2>
         <div id="adminCodesList"><p class="empty-admin">No codes yet.</p></div>
+      </div>
+
+    </div>
+
+    <!-- VOLUNTEERS TAB -->
+    <div class="tab-panel" id="tab-volunteers">
+
+      <!-- SETTINGS -->
+      <div class="admin-section">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          Volunteer settings
+        </h2>
+        <div class="admin-card">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="field"><label>Max volunteers per date</label><input type="number" id="volMaxPerDate" min="1" placeholder="3" /></div>
+            <div class="field"><label>Shift start time</label><input type="time" id="volStartTime" /></div>
+            <div class="field"><label>Shift end time</label><input type="time" id="volEndTime" /></div>
+          </div>
+          <div class="field"><label>Service hours per shift</label><input type="number" id="volHours" min="0" step="0.5" placeholder="e.g. 0.5" /></div>
+          <div class="field"><label>Shift description (shown on club page)</label><input type="text" id="volDesc" placeholder="Pick a date to staff the compost station at lunch." /></div>
+          <div class="field">
+            <label>Block a date (no volunteering)</label>
+            <div style="display:flex;gap:8px">
+              <input type="date" id="volBlockDate" style="flex:1" />
+              <button class="btn btn-ghost btn-sm" onclick="blockVolDate()">Block date</button>
+            </div>
+          </div>
+          <div id="volBlockedList" style="margin-top:8px"></div>
+          <button class="btn btn-primary" onclick="saveVolSettings()" style="margin-top:8px">Save settings</button>
+        </div>
+      </div>
+
+      <!-- SIGNUPS BY DATE -->
+      <div class="admin-section">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Volunteer signups by date
+        </h2>
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="exportVolCSV()">Export CSV report</button>
+          <button class="btn btn-ghost btn-sm" onclick="addVolManual()">Add volunteer manually</button>
+        </div>
+        <div id="adminVolList"><p class="empty-admin">No volunteer signups yet.</p></div>
       </div>
 
     </div>
