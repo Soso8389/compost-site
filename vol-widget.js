@@ -37,9 +37,10 @@ const VOL = {
     }, 30000);
   },
 
-  update(volunteers, settings) {
+  update(volunteers, settings, db) {
     this.volunteers = volunteers || {};
     this.settings   = settings  || {};
+    if (db) this.db = db;
     this.render();
   },
 

@@ -50,13 +50,13 @@ async function initFirebase() {
     db.collection('volunteers').onSnapshot(snap => {
       state.volunteers = {};
       snap.forEach(doc => { state.volunteers[doc.id] = doc.data(); });
-      if (typeof VOL !== 'undefined') VOL.update(state.volunteers, state.volSettings);
+      if (typeof VOL !== 'undefined') VOL.update(state.volunteers, state.volSettings, db);
     });
 
     // volunteer settings
     db.collection('system').doc('volSettings').onSnapshot(doc => {
       state.volSettings = doc.exists ? doc.data() : {};
-      if (typeof VOL !== 'undefined') VOL.update(state.volunteers, state.volSettings);
+      if (typeof VOL !== 'undefined') VOL.update(state.volunteers, state.volSettings, db);
     });
 
     // listen for lbs stat

@@ -60,7 +60,7 @@ async function initFirebase() {
       state.volunteers = {};
       snap.forEach(doc => { state.volunteers[doc.id] = doc.data(); });
       renderMyShifts();
-      if (typeof VOL !== 'undefined') VOL.update(state.volunteers, state.volSettings);
+      if (typeof VOL !== 'undefined') VOL.update(state.volunteers, state.volSettings, db);
     });
 
     // volunteer settings
