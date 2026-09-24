@@ -18,9 +18,15 @@ const VOL = {
     this.volunteers  = volunteers || {};
     this.settings    = settings  || {};
     this.containerId = containerId || 'volWidget';
-    this.weekOffset  = 0;
     this.selectedDate = null;
+    // auto-advance to next week if all days this week are past
+    const thisWeek = this.getWeekDates(0);
+    const allPast  = thisWeek.every(d => this.isPast(d));
+    this.weekOffset = allPast ? 1 : 0;
     this.render();
+    // refresh every minute so days disappear at 12:51
+    if (this._timer) clearInterval(this._timer);
+    this._timer = setInterval(() => this.render(), 60000);
   },
 
   update(volunteers, settings) {
@@ -55,8 +61,10 @@ const VOL = {
   },
 
   isPast(date) {
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    return date < today;
+    const now = new Date();
+    const cutoff = new Date(date);
+    cutoff.setHours(12, 51, 0, 0); // 12:51 PM
+    return now >= cutoff;
   },
 
   isBlocked(key) {
@@ -126,7 +134,7 @@ const VOL = {
     container.innerHTML =
       '<div class="vol-calendar">' +
         '<div class="vol-week-nav">' +
-          '<button class="vol-week-btn" onclick="VOL.prevWeek()" ' + (this.weekOffset <= 0 ? 'disabled' : '') + '>&#8592;</button>' +
+          '<button class="vol-week-btn" onclick="VOL.prevWeek()" disabled>&#8592;</button>' +
           '<span class="vol-week-label">' + startLabel + ' – ' + endLabel + '</span>' +
           '<button class="vol-week-btn" onclick="VOL.nextWeek()">&#8594;</button>' +
         '</div>' +
@@ -205,10 +213,8 @@ const VOL = {
   },
 
   prevWeek() {
-    if (this.weekOffset <= 0) return;
-    this.weekOffset--;
-    this.selectedDate = null;
-    this.render();
+    // previous weeks not available
+    return;
   },
 
   nextWeek() {

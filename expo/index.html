@@ -167,10 +167,10 @@
     CVHS Can Compost
   </a>
   <div class="nav-links">
-    <a href="/#learn">Learn</a>
-    <a href="/#sort">Sort</a>
-    <a href="/#gogreen">Win</a>
-    <a href="/#volunteer">Volunteer</a>
+    <a href="index.html#learn">Learn</a>
+    <a href="index.html#sort">Sort</a>
+    <a href="index.html#gogreen">Win</a>
+    <a href="index.html#volunteer">Volunteer</a>
   </div>
   <div class="nav-cta" id="navCta">
     <a href="/" class="btn btn-ghost" style="padding:9px 18px">Main site</a>
@@ -181,10 +181,10 @@
 </nav>
 
 <div class="mobile-menu" id="mobileMenu">
-  <a href="/#learn" onclick="closeMenu()">Learn</a>
-  <a href="/#sort" onclick="closeMenu()">Sort</a>
-  <a href="/#gogreen" onclick="closeMenu()">Win a gift card</a>
-  <a href="/#volunteer" onclick="closeMenu()">Volunteer</a>
+  <a href="index.html#learn" onclick="closeMenu()">Learn</a>
+  <a href="index.html#sort" onclick="closeMenu()">Sort</a>
+  <a href="index.html#gogreen" onclick="closeMenu()">Win a gift card</a>
+  <a href="index.html#volunteer" onclick="closeMenu()">Volunteer</a>
   <div class="m-divider"></div>
   <a href="/" onclick="closeMenu()">Main site</a>
 </div>
@@ -273,10 +273,10 @@
       </div>
       <div>
         <h5>Explore</h5>
-        <a href="/#learn">What is composting</a>
-        <a href="/#sort">Sorting guide</a>
-        <a href="/#gogreen">Go Green incentive</a>
-        <a href="/#volunteer">Volunteer</a>
+        <a href="index.html#learn">What is composting</a>
+        <a href="index.html#sort">Sorting guide</a>
+        <a href="index.html#gogreen">Go Green incentive</a>
+        <a href="index.html#volunteer">Volunteer</a>
       </div>
       <div>
         <h5>Connect</h5>
@@ -347,6 +347,18 @@ document.getElementById('expoForm').addEventListener('submit', async e => {
         read: false
       });
     }
+
+    // email notification via FormSubmit (fire and forget)
+    fetch('https://formsubmit.co/ajax/cvhs.composting@gmail.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        _subject: 'New Club Expo Signup — ' + name,
+        name:     name,
+        phone:    phone,
+        source:   'Club Expo'
+      })
+    }).catch(() => {}); // silent fail - Firestore already saved
 
     // show success, reset after 3 seconds
     document.getElementById('formWrap').style.display    = 'none';
