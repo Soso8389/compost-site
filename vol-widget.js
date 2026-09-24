@@ -117,9 +117,8 @@ const VOL = {
       if (selected)         cls += ' selected';
 
       const clickable = !past && !blocked && !full;
-      const onclick   = clickable ? 'VOL.selectDay("' + key + '")' : '';
 
-      return '<div class="' + cls + '" ' + (onclick ? 'onclick="' + onclick + '"' : '') + '>' +
+      return '<div class="' + cls + '" ' + (clickable ? 'onclick="VOL.selectDay(\'' + key + '\')"' : '') + '>' +
         '<div class="vd-name">' + days[i] + '</div>' +
         '<div class="vd-num">'  + date.getDate() + '</div>' +
         '<div class="vd-bar"><div class="vd-fill" style="width:' + pct + '%"></div></div>' +
