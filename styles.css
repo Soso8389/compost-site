@@ -519,3 +519,55 @@ h4  { font-size: .98rem; font-weight: 700; color: var(--green-deep); margin-bott
   cursor: pointer; transition: background .2s;
 }
 .dyn-remove:hover { background: #f1d4cc; }
+
+/* ── admin leaderboard tabs ─────────────────────────────── */
+.lb-admin-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.lb-admin-tab {
+  padding: 7px 16px; border-radius: 100px; font-size: .85rem; font-weight: 600;
+  color: var(--green); box-shadow: inset 0 0 0 1.5px var(--tan-soft);
+  transition: background .2s, box-shadow .2s; cursor: pointer;
+  display: flex; align-items: center;
+}
+.lb-admin-tab.active { background: var(--green); color: #f3f0e6; box-shadow: none; }
+.lb-admin-tab:hover:not(.active) { background: var(--leaf-soft); }
+
+/* ── week volunteer calendar ────────────────────────────── */
+.vol-calendar { max-width: 520px; }
+.vol-week-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.vol-week-label {
+  font-family: var(--display); font-size: 1rem; font-weight: 500; color: var(--green-deep);
+}
+.vol-week-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--cream); border: 1.5px solid var(--tan-soft);
+  color: var(--green); font-size: 1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s, border-color .2s;
+}
+.vol-week-btn:hover { background: var(--leaf-soft); border-color: var(--leaf); }
+.vol-week-btn:disabled { opacity: .35; cursor: default; }
+.vol-days {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px;
+}
+.vol-day {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 12px 6px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--tan-soft); cursor: pointer;
+  background: #fff; transition: border-color .2s, background .2s, transform .15s;
+  position: relative; overflow: hidden;
+}
+.vol-day:hover:not(.disabled):not(.full) { border-color: var(--moss); transform: translateY(-2px); }
+.vol-day.selected { border-color: var(--moss); background: var(--leaf-soft); }
+.vol-day.disabled { opacity: .4; cursor: default; }
+.vol-day.full { cursor: default; }
+.vol-day .vd-name { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.vol-day .vd-num  { font-family: var(--display); font-size: 1.4rem; font-weight: 500; color: var(--green-deep); line-height: 1; margin-bottom: 8px; }
+.vol-day .vd-bar  { width: 100%; height: 6px; background: var(--tan-soft); border-radius: 100px; overflow: hidden; }
+.vol-day .vd-fill { height: 100%; background: var(--moss); border-radius: 100px; transition: width .3s; }
+.vol-day.full .vd-fill { background: var(--green); }
+.vol-day .vd-count { font-size: .68rem; color: var(--muted); margin-top: 4px; font-weight: 600; }
+.vol-day.full .vd-count { color: var(--green); }
+.vol-confirm { margin-top: 4px; }
