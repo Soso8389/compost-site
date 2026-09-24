@@ -571,3 +571,12 @@ h4  { font-size: .98rem; font-weight: 700; color: var(--green-deep); margin-bott
 .vol-day .vd-count { font-size: .68rem; color: var(--muted); margin-top: 4px; font-weight: 600; }
 .vol-day.full .vd-count { color: var(--green); }
 .vol-confirm { margin-top: 4px; }
+
+/* ── vol confirm box ────────────────────────────────────── */
+.vol-confirm-box {
+  background: var(--cream); border: 1px solid var(--tan-soft);
+  border-radius: var(--radius-sm); padding: 16px; margin-top: 12px;
+  font-size: .9rem; color: var(--muted);
+}
+.vol-confirm-box p { margin-bottom: 12px; }
+.vol-confirm-box p:last-child { margin-bottom: 0; }
