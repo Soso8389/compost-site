@@ -195,6 +195,7 @@ function browseAsGuest() {
 function logout() {
   setSession(null);
   renderNav();
+  if (typeof VOL !== 'undefined') VOL.renderConfirm();
   toast('Logged out.');
 }
 
@@ -285,7 +286,7 @@ if (idFormEl) {
     u.studentId = val;
     await DB.upsert(u);
     closeIdModal();
-    if (typeof VOL !== 'undefined') VOL.renderConfirm();
+    if (typeof VOL !== 'undefined') { VOL.renderConfirm(); VOL.render(); }
     renderVolForm();
     toast('Student ID saved. All features are now unlocked.', 'ok');
     if (typeof window._pendingIdAction === 'function') {

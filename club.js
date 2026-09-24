@@ -483,7 +483,7 @@ function switchTab(which) {
   document.getElementById('authTitle').textContent = login ? 'Welcome back' : 'Join the club';
 }
 function browseAsGuest() { setSession('guest'); closeAuth(); renderAll(); }
-function logout() { setSession(null); renderAll(); toast('Logged out.'); }
+function logout() { setSession(null); renderAll(); if (typeof VOL !== 'undefined') VOL.renderConfirm(); toast('Logged out.'); }
 
 document.getElementById('signupForm').addEventListener('submit', async e => {
   e.preventDefault();
@@ -497,6 +497,7 @@ document.getElementById('signupForm').addEventListener('submit', async e => {
     await DB.upsert(u);
   }
   setSession(phone); f.reset(); closeAuth(); renderAll();
+  if (typeof VOL !== 'undefined') VOL.renderConfirm();
   toast(`Welcome, ${name.split(' ')[0]}.`, 'ok');
   setTimeout(() => { if (!hasStudentId()) openIdModal(); }, 600);
 });
@@ -572,6 +573,7 @@ if (idFormEl) {
     u.studentId = val;
     await DB.upsert(u);
     closeIdModal();
+    if (typeof VOL !== 'undefined') { VOL.renderConfirm(); VOL.render(); }
     toast('Student ID saved. All features are now unlocked.', 'ok');
     if (typeof window._pendingIdAction === 'function') {
       const fn = window._pendingIdAction;
