@@ -6,10 +6,9 @@
 
 const CFG         = window.CONFIG || {};
 const ADMIN_PHONE  = (CFG.adminPhone || '8182793907').replace(/\D/g, '');
-const SMS_URL      = 'https://compost-site.vercel.app/api/send-sms';
 
 let db = null;
-const state = { users: {}, events: [], codes: {}, announcements: [], admins: {}, giftcards: [], volunteers: {}, volSettings: {}, lbs: 0, authed: false, isSuper: false, permissions: [] };
+const state = { users: {}, events: [], codes: {}, announcements: [], admins: {}, giftcards: [], volunteers: {}, anotherlife: [], volSettings: {}, lbs: 0, authed: false, isSuper: false, permissions: [] };
 
 /* ── crypto helpers ─────────────────────────────────────── */
 async function sha256(str) {
@@ -133,7 +132,7 @@ function enterAdmin(phone, isSuper, permissions) {
 function applyPermissions() {
   if (state.isSuper) return; // super admin sees everything
   const allowed = state.permissions;
-  const allTabs = ['announcements','events','codes','leaderboard','members','giftcards','volunteers','minutes','stats','admins'];
+  const allTabs = ['announcements','events','codes','leaderboard','members','giftcards','volunteers','anotherlife','minutes','stats','admins'];
   allTabs.forEach(tab => {
     const btn   = document.querySelector(`.tab-btn[onclick="showTab('${tab}')"]`);
     const panel = document.getElementById('tab-' + tab);
@@ -195,6 +194,12 @@ function startListeners() {
     renderAdminVolunteers();
   });
 
+  db.collection('anotherlife').onSnapshot(snap => {
+    state.anotherlife = [];
+    snap.forEach(doc => state.anotherlife.push({ id: doc.id, ...doc.data() }));
+    renderAdminAnotherLife();
+  });
+
   db.collection('system').doc('volSettings').onSnapshot(doc => {
     state.volSettings = doc.exists ? doc.data() : {};
     loadVolSettingsForm();
@@ -235,6 +240,7 @@ function showTab(name) {
     minutes:       function() {},
     stats:         function() {},
     volunteers:    renderAdminVolunteers,
+    anotherlife:   renderAdminAnotherLife,
   };
   if (renders[name]) renders[name]();
 }
@@ -244,43 +250,13 @@ async function postAnnouncement() {
   const title   = document.getElementById('aTitle').value.trim();
   const message = document.getElementById('aMessage').value.trim();
   const pinned  = document.getElementById('aPinned').checked;
-  const sendSMS = document.getElementById('aSendSMS').checked;
   if (!title || !message) { toast('Title and message are required.', 'bad'); return; }
   try {
     await db.collection('announcements').add({ title, message, pinned, ts: Date.now() });
-
-    // send SMS if checked
-    if (sendSMS) {
-      const phones = Object.values(state.users)
-        .filter(u => !u.smsOptOut)
-        .map(u => u.phone)
-        .filter(Boolean);
-      if (phones.length) {
-        try {
-          const r = await fetch(SMS_URL, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ phones, message: (title + ': ' + message).trim() })
-          });
-          const data = await r.json();
-          const sent = typeof data.sent === 'number' ? data.sent : 0;
-          console.log('SMS response:', data);
-          toast('Announcement posted. ' + sent + ' text' + (sent === 1 ? '' : 's') + ' sent.', 'ok');
-        } catch (e) {
-          toast('Announcement posted but SMS failed.', 'bad');
-          console.error(e);
-        }
-      } else {
-        toast('Announcement posted. No member phone numbers found.', 'ok');
-      }
-    } else {
-      toast('Announcement posted.', 'ok');
-    }
-
-    document.getElementById('aTitle').value    = '';
-    document.getElementById('aMessage').value  = '';
-    document.getElementById('aPinned').checked  = false;
-    document.getElementById('aSendSMS').checked = false;
+    document.getElementById('aTitle').value   = '';
+    document.getElementById('aMessage').value = '';
+    document.getElementById('aPinned').checked = false;
+    toast('Announcement posted.', 'ok');
   } catch (e) { toast('Failed to post.', 'bad'); console.error(e); }
 }
 
@@ -306,6 +282,7 @@ function renderAdminAnnouncements() {
         <div class="ar-meta" style="margin-top:4px">${new Date(a.ts).toLocaleDateString()}</div>
       </div>
       <div class="ar-actions">
+        <button class="btn btn-ghost btn-sm" data-title="${a.title}" data-msg="${a.message}" onclick="copyAndOpenGV(this.dataset.title, this.dataset.msg)">Copy + GV</button>
         <button class="btn btn-ghost btn-sm" onclick="togglePin('${a.id}', ${!!a.pinned})">${a.pinned ? 'Unpin' : 'Pin'}</button>
         <button class="btn btn-danger btn-sm" onclick="deleteAnnouncement('${a.id}')">Delete</button>
       </div>
@@ -331,6 +308,59 @@ async function deleteEvent(id) {
   if (!confirm('Delete this event?')) return;
   try { await db.collection('events').doc(id).delete(); toast('Deleted.', 'ok'); }
   catch (e) { toast('Failed to delete.', 'bad'); }
+}
+
+/* -- Another Life schedule -- */
+function alEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+function alToday() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+async function addAnotherLife() {
+  const date     = document.getElementById('alDate').value;
+  const slot     = document.getElementById('alSlot').value;
+  const location = document.getElementById('alLocation').value.trim();
+  const snacks   = document.getElementById('alSnacks').value.trim();
+  if (!date || !location) { toast('Date and location are required.', 'bad'); return; }
+  try {
+    await db.collection('anotherlife').add({ date, slot, location, snacks, ts: Date.now() });
+    ['alDate','alLocation','alSnacks'].forEach(id => { document.getElementById(id).value = ''; });
+    toast('Added to schedule.', 'ok');
+  } catch (e) { toast('Failed to add.', 'bad'); console.error(e); }
+}
+
+async function deleteAnotherLife(id) {
+  if (!confirm('Delete this cart day?')) return;
+  try { await db.collection('anotherlife').doc(id).delete(); toast('Deleted.', 'ok'); }
+  catch (e) { toast('Failed to delete.', 'bad'); }
+}
+
+function renderAdminAnotherLife() {
+  const el = document.getElementById('adminAnotherLifeList');
+  if (!el) return;
+  const today = alToday();
+  const upcoming = state.anotherlife
+    .filter(e => e.date && e.date >= today)
+    .sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+  if (!upcoming.length) { el.innerHTML = '<p class="empty-admin">No cart days scheduled.</p>'; return; }
+  el.innerHTML = upcoming.map(e => {
+    const p = e.date.split('-');
+    const label = new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    return `
+      <div class="admin-row">
+        <div>
+          <div class="ar-title">${alEsc(label)} · ${alEsc(e.slot || 'Lunch')}</div>
+          <div class="ar-meta">${alEsc(e.location || '')}${e.snacks ? ' · ' + alEsc(e.snacks) : ''}</div>
+        </div>
+        <div class="ar-actions">
+          <button class="btn btn-danger btn-sm" data-id="${alEsc(e.id)}" onclick="deleteAnotherLife(this.dataset.id)">Delete</button>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 function to12hr(t) {
@@ -512,6 +542,19 @@ function renderLeaderboard() {
 function lbAdminSwitch(i) {
   lbAdminCardIndex = i;
   renderLeaderboard();
+}
+
+/* ── export phones ──────────────────────────────────────── */
+function exportPhones() {
+  const phones = Object.values(state.users)
+    .filter(u => !u.smsOptOut)
+    .map(u => u.phone)
+    .join(', ');
+  navigator.clipboard.writeText(phones).then(() => {
+    toast('Phone numbers copied to clipboard — paste into iMessage.', 'ok');
+  }).catch(() => {
+    prompt('Copy these numbers:', phones);
+  });
 }
 
 /* ── members ────────────────────────────────────────────── */
@@ -1023,6 +1066,61 @@ function exportVolCSV() {
   a.click();
   URL.revokeObjectURL(url);
   toast('CSV exported.', 'ok');
+}
+
+/* ── copy + google voice ────────────────────────────────── */
+async function copyAndOpenGV(title, message) {
+  const text = title + '\n' + message;
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Copied — opening Google Voice.', 'ok');
+  } catch(e) {
+    toast('Could not copy automatically.', 'bad');
+  }
+  setTimeout(() => window.open('https://voice.google.com', '_blank'), 500);
+}
+
+/* ── export new members ─────────────────────────────────── */
+async function exportNewMembers() {
+  // get last export timestamp from Firestore
+  let lastExport = 0;
+  try {
+    const doc = await db.collection('admin').doc('exportLog').get();
+    if (doc.exists) lastExport = doc.data().lastMemberExport || 0;
+  } catch(e) {}
+
+  const newMembers = Object.values(state.users).filter(u => (u.joinedAt || 0) > lastExport);
+
+  if (!newMembers.length) {
+    toast('No new members since last export.', 'ok');
+    return;
+  }
+
+  // build CSV
+  const rows = [['Name', 'Given Name', 'Family Name', 'Phone 1 - Type', 'Phone 1 - Value', 'Group Membership']];
+  newMembers.forEach(u => {
+    const parts = (u.name || '').trim().split(' ');
+    const first = parts[0] || '';
+    const last  = parts.slice(1).join(' ') || '';
+    const phone = u.phone ? (u.phone.length === 10 ? '+1' + u.phone : '+' + u.phone) : '';
+    rows.push([u.name || '', first, last, 'Mobile', phone, 'Compost Club']);
+  });
+
+  const csv  = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'NewMembers_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // save export timestamp
+  try {
+    await db.collection('admin').doc('exportLog').set({ lastMemberExport: Date.now() }, { merge: true });
+  } catch(e) {}
+
+  toast(newMembers.length + ' new member' + (newMembers.length === 1 ? '' : 's') + ' exported.', 'ok');
 }
 
 /* ── toast ──────────────────────────────────────────────── */

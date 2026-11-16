@@ -110,6 +110,7 @@
       <button class="tab-btn" onclick="showTab('members')">Members</button>
       <button class="tab-btn" onclick="showTab('giftcards')">Gift Cards</button>
       <button class="tab-btn" onclick="showTab('volunteers')">Volunteers</button>
+      <button class="tab-btn" onclick="showTab('anotherlife')">Another Life</button>
       <button class="tab-btn" onclick="showTab('minutes')">Minutes</button>
       <button class="tab-btn" onclick="showTab('stats')" id="tabStats">Stats</button>
       <button class="tab-btn" onclick="showTab('admins')" id="tabAdmins">Admins</button>
@@ -128,10 +129,6 @@
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
             <input type="checkbox" id="aPinned" style="width:auto;margin:0" />
             <label for="aPinned" style="font-size:.88rem;color:var(--green);font-weight:600;margin:0">Pin to top</label>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-            <input type="checkbox" id="aSendSMS" style="width:auto;margin:0" />
-            <label for="aSendSMS" style="font-size:.88rem;color:var(--green);font-weight:600;margin:0">Send as SMS to all members</label>
           </div>
           <button class="btn btn-primary" onclick="postAnnouncement()">Post announcement</button>
         </div>
@@ -163,6 +160,35 @@
       <div class="admin-section">
         <h2>Upcoming events</h2>
         <div id="adminEventsList"><p class="empty-admin">No events yet.</p></div>
+      </div>
+    </div>
+
+    <!-- ANOTHER LIFE -->
+    <div class="tab-panel" id="tab-anotherlife">
+      <div class="admin-section">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Add a cart day
+        </h2>
+        <div class="admin-card">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="field"><label>Date <span class="req">*</span></label><input type="date" id="alDate" /></div>
+            <div class="field"><label>Lunch or snack <span class="req">*</span></label>
+              <select id="alSlot" style="width:100%;padding:12px 14px;border-radius:var(--radius-sm);border:1px solid var(--tan-soft);background:#fff;font-family:inherit;font-size:.95rem;color:var(--ink)">
+                <option value="Lunch">Lunch</option>
+                <option value="Snack">Snack</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Location <span class="req">*</span></label><input type="text" id="alLocation" placeholder="e.g. Quad, Upper field" /></div>
+          <div class="field"><label>Snacks</label><input type="text" id="alSnacks" placeholder="e.g. Granola bars, fruit snacks" /></div>
+          <button class="btn btn-primary" onclick="addAnotherLife()">Add to schedule</button>
+        </div>
+      </div>
+      <div class="admin-section">
+        <h2>Upcoming cart days</h2>
+        <p style="color:var(--muted);font-size:.88rem;margin-bottom:12px">Past days disappear automatically.</p>
+        <div id="adminAnotherLifeList"><p class="empty-admin">No cart days scheduled.</p></div>
       </div>
     </div>
 
@@ -302,6 +328,10 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           All members
         </h2>
+        <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="exportPhones()">Copy phone numbers for iMessage</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportNewMembers()">Export new members CSV</button>
+        </div>
         <div id="adminMembersList"><p class="empty-admin">Loading members...</p></div>
       </div>
     </div>
@@ -366,6 +396,7 @@
             <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="leaderboard" style="width:auto;margin:0" /> Leaderboard</label>
             <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="members" style="width:auto;margin:0" /> Members</label>
             <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="giftcards" style="width:auto;margin:0" /> Gift Cards</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="anotherlife" style="width:auto;margin:0" /> Another Life</label>
             <label style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;cursor:pointer"><input type="checkbox" class="admin-perm" value="stats" style="width:auto;margin:0" /> Stats</label>
           </div>
           <button class="btn btn-primary" onclick="addSecondaryAdmin()">Add admin</button>
